@@ -1,6 +1,8 @@
 import os
 from mistralai import Mistral
+from dotenv import load_dotenv
 
+load_dotenv()
 api_key = os.environ["MISTRAL_API_KEY"]
 model = "mistral-medium-latest"
 
