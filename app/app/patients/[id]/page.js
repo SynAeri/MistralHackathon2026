@@ -1,5 +1,7 @@
 import Link from "next/link";
 import AudioRecordingControl from "./AudioRecordingControl";
+import AudioArchive from "./AudioArchive";
+import SendConfirmationButton from "./SendConfirmationButton";
 
 function normalizePatient(patient) {
   return {
@@ -15,13 +17,45 @@ function normalizePatient(patient) {
   };
 }
 
-function buildUiModel(patient) {
-  const diagnoses = ["Depression", "Anxiety", "Mood Disorder", "Stress Response"];
+function normalizeDiagnosisPayload(payload) {
+  const diagnoses = Array.isArray(payload?.diagnoses) ? payload.diagnoses : [];
+  const primaryDiagnosis = diagnoses[0] ?? null;
+  const rawAlerts = primaryDiagnosis?.triggered_alerts ?? "No alerts";
+  const alerts =
+    rawAlerts === "No alerts"
+      ? ["No active alerts"]
+      : rawAlerts
+          .split(/\s*[|,;]\s*/)
+          .map((alert) => alert.trim())
+          .filter(Boolean);
+
+  return {
+    diagnosis: primaryDiagnosis?.diagnosis ?? "Undetermined",
+    status: primaryDiagnosis?.status ?? "undetermined",
+    alerts,
+  };
+}
+
+function normalizeEngagementPayload(payload) {
+  const totalCalls = Number(payload?.total_calls ?? 0);
+  const callsUnpicked = Number(payload?.calls_unpicked ?? 0);
+  const completedCalls = Math.max(0, totalCalls - callsUnpicked);
+  const percentage = Number(payload?.call_percentage ?? 0);
+
+  return {
+    totalCalls,
+    callsUnpicked,
+    completedCalls,
+    callPercentage: Number.isFinite(percentage) ? percentage : 0,
+  };
+}
+
+function buildUiModel(patient, diagnosisData, engagementData) {
   const assignedClinicians = [
     "Dr. William Carter",
     "Dr. Maya Singh",
     "Dr. Elena Brooks",
-    "Dr. Daniel Kim",
+    "Dr. Daniel Kim", 
   ];
   const transcriptMap = [
     "I barely made it through the call today. Everything feels heavy, work keeps piling up, and I have been skipping medication some days because I forget or because it just feels pointless.",
@@ -29,26 +63,59 @@ function buildUiModel(patient) {
     "I am keeping up with some of the plan, but the last few days have been rough. I canceled one appointment, avoided calls, and felt more withdrawn than usual.",
     "The good days feel shorter right now. I can still manage basic tasks, but I notice less energy, slower speech, and less motivation to respond to people.",
   ];
-  const index = patient.id % diagnoses.length;
-  const completion = Math.max(62, 94 - patient.id * 2);
-  const streak = patient.id % 3 === 0 ? 2 : 1;
+  const index = patient.id % assignedClinicians.length;
+  const monitorStatusMap = {
+    high: "ALERT",
+    medium: "MONITOR",
+    lower: "STABLE",
+    undetermined: "REVIEW",
+  };
+  const monitorToneMap = {
+    high: "red",
+    medium: "amber",
+    lower: "green",
+    undetermined: "slate",
+  };
+  const symptomDeltaMap = {
+    high: "+22% vs baseline",
+    medium: "+12% vs baseline",
+    lower: "Within baseline",
+    undetermined: "No baseline yet",
+  };
+  const recordings = Array.from({ length: 9 }, (_, itemIndex) => {
+    const number = itemIndex + 1;
+    const minutes = number < 4 ? "01" : number < 7 ? "00" : "02";
+    const seconds = String((number * 7) % 60).padStart(2, "0");
+
+    return {
+      id: `rec-${number}`,
+      title: `Recording ${String(number).padStart(2, "0")}`,
+      date: `2026-02-${String(28 - itemIndex).padStart(2, "0")}`,
+      duration: `${minutes}:${seconds}`,
+      audioSrc: "/Sample_1.wav",
+    };
+  });
 
   return {
-    diagnosis: diagnoses[index],
+    diagnosis: diagnosisData.diagnosis,
+    diagnosisStatus: monitorStatusMap[diagnosisData.status] ?? "REVIEW",
+    diagnosisTone: monitorToneMap[diagnosisData.status] ?? "slate",
     assignedClinician: assignedClinicians[index],
     updatedAt: "February 28, 2026",
     requestedDate: patient.nextAppointment === "-" ? "March 5, 2026" : patient.nextAppointment,
     requestedTime: "2:30 PM",
     latestCheckInDate: "Apr 22, 2024, 4:05PM",
-    duration: "65 seconds",
+    // duration: "65 seconds",
     transcript: transcriptMap[index],
-    completion,
-    callLabel: "12/14 calls",
-    missedStreak: streak,
-    symptomDelta: "+22% vs baseline",
+    recordings,
+    completion: Math.round(engagementData.callPercentage),
+    callLabel: `${engagementData.completedCalls}/${engagementData.totalCalls} calls`,
+    missedStreak: engagementData.callsUnpicked,
+    symptomDelta: symptomDeltaMap[diagnosisData.status] ?? "No baseline yet",
+    alerts: diagnosisData.alerts,
     biomarkers: [
       {
-        title: "Response Latency",
+        title: "Speech Duration",
         value: "2.3",
         unit: "s",
         delta: "+0.8s vs baseline",
@@ -62,7 +129,7 @@ function buildUiModel(patient) {
         points: [1.2, 1.25, 1.5, 1.4, 1.65, 1.85, 2.05, 2.3],
       },
       {
-        title: "Pause Burden",
+        title: "Speech Rate",
         value: "34",
         unit: "%",
         delta: "+12% vs baseline",
@@ -76,7 +143,7 @@ function buildUiModel(patient) {
         points: [20, 22, 23, 25, 27, 28, 30, 34],
       },
       {
-        title: "Speech Rate",
+        title: "Intensity",
         value: "118",
         unit: "wpm",
         delta: "-24 vs baseline",
@@ -91,7 +158,7 @@ function buildUiModel(patient) {
         points: [142, 140, 138, 135, 132, 128, 122, 118],
       },
       {
-        title: "Pitch Variability",
+        title: "Variability",
         value: "68",
         unit: "Hz",
         delta: "Stable",
@@ -112,12 +179,32 @@ function buildUiModel(patient) {
 export default async function PatientDetailPage({ params }) {
   const { id } = await params;
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-  let response;
+  let patientResponse;
+  let diagnosisPayload = null;
+  let engagementPayload = null;
 
   try {
-    response = await fetch(`${apiBaseUrl}/api/patients/${id}`, {
-      cache: "no-store",
-    });
+    const [patientResult, diagnosisResult, engagementResult] = await Promise.all([
+      fetch(`${apiBaseUrl}/api/patients/${id}`, {
+        cache: "no-store",
+      }),
+      fetch(`${apiBaseUrl}/api/patients/${id}/diagnoses`, {
+        cache: "no-store",
+      }),
+      fetch(`${apiBaseUrl}/api/patients/${id}/engag`, {
+        cache: "no-store",
+      }),
+    ]);
+
+    patientResponse = patientResult;
+
+    if (diagnosisResult.ok) {
+      diagnosisPayload = await diagnosisResult.json();
+    }
+
+    if (engagementResult.ok) {
+      engagementPayload = await engagementResult.json();
+    }
   } catch {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-10">
@@ -138,7 +225,7 @@ export default async function PatientDetailPage({ params }) {
     );
   }
 
-  if (!response.ok) {
+  if (!patientResponse.ok) {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-10">
         <div className="mx-auto max-w-3xl rounded-2xl border border-red-200 bg-white p-8 shadow-lg">
@@ -157,8 +244,16 @@ export default async function PatientDetailPage({ params }) {
     );
   }
 
-  const patient = normalizePatient(await response.json());
-  const ui = buildUiModel(patient);
+  const patient = normalizePatient(await patientResponse.json());
+  const diagnosisData = normalizeDiagnosisPayload(diagnosisPayload);
+  const engagementData = normalizeEngagementPayload(engagementPayload);
+  const ui = buildUiModel(patient, diagnosisData, engagementData);
+  const statusBadgeStyles = {
+    red: "border-rose-400 bg-rose-50 text-rose-700",
+    amber: "border-amber-400 bg-amber-50 text-amber-700",
+    green: "border-emerald-400 bg-emerald-50 text-emerald-700",
+    slate: "border-slate-300 bg-slate-100 text-slate-700",
+  };
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#edf7fb_0%,#eef7f4_100%)] px-5 py-8 md:px-8">
@@ -193,7 +288,7 @@ export default async function PatientDetailPage({ params }) {
           </div>
         </section>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_minmax(21rem,0.75fr)]">
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_0.75fr]">
           <div className="space-y-6">
             <section className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
               <div className="flex flex-wrap items-center gap-5 border-b border-slate-200 pb-6 text-slate-700">
@@ -206,8 +301,12 @@ export default async function PatientDetailPage({ params }) {
                 <div className="hidden h-10 w-px bg-slate-200 md:block" />
                 <div className="flex items-center gap-4 text-xl">
                   <span>Status:</span>
-                  <span className="rounded-full border border-amber-400 bg-amber-50 px-5 py-1.5 text-base font-semibold tracking-[0.08em] text-amber-700">
-                    MONITOR
+                  <span
+                    className={`rounded-full border px-5 py-1.5 text-base font-semibold tracking-[0.08em] ${
+                      statusBadgeStyles[ui.diagnosisTone]
+                    }`}
+                  >
+                    {ui.diagnosisStatus}
                   </span>
                 </div>
               </div>
@@ -218,8 +317,9 @@ export default async function PatientDetailPage({ params }) {
                     <h2 className="text-xl font-semibold text-slate-800">Triggered Alerts:</h2>
                     <ul className="mt-4 space-y-3 text-base leading-7 text-slate-700">
                       <li>• Symptom score {ui.symptomDelta}</li>
-                      <li>• Speech rate decreased significantly</li>
-                      <li>• Missed 2 consecutive check-ins</li>
+                      {ui.alerts.map((alert) => (
+                        <li key={alert}>• {alert}</li>
+                      ))}
                     </ul>
                   </div>
 
@@ -238,12 +338,7 @@ export default async function PatientDetailPage({ params }) {
                     <InfoRow label="Requested Appointment Date" value={ui.requestedDate} />
                     <InfoRow label="Requested Time" value={ui.requestedTime} />
                   </div>
-                  <button
-                    type="button"
-                    className="mt-14 inline-flex w-full items-center justify-center rounded-2xl bg-blue-500 px-5 py-4 text-lg font-semibold text-white shadow-[0_10px_25px_rgba(59,130,246,0.28)] transition hover:bg-blue-600"
-                  >
-                    Send Confirmation
-                  </button>
+                  <SendConfirmationButton />
                 </div>
               </div>
             </section>
@@ -269,15 +364,19 @@ export default async function PatientDetailPage({ params }) {
             </section>
           </div>
 
-          <aside className="h-fit rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
+          <aside className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
             <h2 className="text-3xl font-bold tracking-[-0.03em] text-slate-800">Latest Check-In</h2>
             <div className="mt-8 space-y-6 text-slate-700">
               <InfoRow label="Date & Time" value={ui.latestCheckInDate} />
-              <InfoRow label="Duration" value={ui.duration} />
+              {/* <InfoRow label="Duration" value={ui.duration} /> */}
 
               <div>
                 <p className="text-xl font-medium text-slate-500">Audio Recording</p>
                 <AudioRecordingControl />
+              </div>
+
+              <div>
+                <AudioArchive recordings={ui.recordings} />
               </div>
 
               <div>
@@ -373,21 +472,24 @@ function BiomarkerCard({ item }) {
     <div className={`rounded-[1.7rem] border p-6 ${style.card}`}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xl font-semibold text-slate-800">{item.title}</p>
+          <p className="text-lg font-semibold text-slate-800">{item.title}</p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
-            <p className="text-5xl font-bold tracking-[-0.04em] text-slate-800">
-              {item.value}
-            </p>
-            <p className="pb-2 text-xl text-slate-500">{item.unit}</p>
-            <p className={`pb-2 text-lg font-medium ${style.value}`}>{item.delta}</p>
+            <p className="text-4xl font-bold tracking-[-0.04em] text-slate-800">{item.value}</p>
+            <p className="pb-2 text-lg text-slate-500">{item.unit}</p>
+            <p className={`pb-2 text-base font-medium ${style.value}`}>{item.delta}</p>
           </div>
         </div>
-        <span className={`rounded-full px-4 py-2 text-base font-semibold ${style.badge}`}>
+        <span className={`rounded-full px-4 py-2 text-sm font-semibold ${style.badge}`}>
           {item.badge}
         </span>
       </div>
       <div className="mt-6">
-        <MiniChart item={item} lineColor={style.line} fillColor={style.fill} baselineColor={style.baseline} />
+        <MiniChart
+          item={item}
+          lineColor={style.line}
+          fillColor={style.fill}
+          baselineColor={style.baseline}
+        />
       </div>
     </div>
   );
@@ -447,7 +549,14 @@ function MiniChart({ item, lineColor, fillColor, baselineColor }) {
           </text>
         </g>
       ))}
-      <line x1={left} y1={top + chartHeight} x2={left + chartWidth} y2={top + chartHeight} stroke="#94a3b8" strokeWidth="1" />
+      <line
+        x1={left}
+        y1={top + chartHeight}
+        x2={left + chartWidth}
+        y2={top + chartHeight}
+        stroke="#94a3b8"
+        strokeWidth="1"
+      />
       <line x1={left} y1={top} x2={left} y2={top + chartHeight} stroke="#94a3b8" strokeWidth="1" />
       <line
         x1={left}
@@ -459,7 +568,14 @@ function MiniChart({ item, lineColor, fillColor, baselineColor }) {
         strokeWidth="2"
       />
       <path d={areaPath} fill={fillColor} />
-      <path d={linePath} fill="none" stroke={lineColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={linePath}
+        fill="none"
+        stroke={lineColor}
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       {item.yTicks.map((tick, index) => {
         const ratio = item.yTicks.length === 1 ? 0 : index / (item.yTicks.length - 1);
         const y = top + chartHeight - ratio * chartHeight;
