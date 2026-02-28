@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta, date
 from typing import Optional
 import secrets
+from pathlib import Path
 from mistralai import Mistral
 from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException, status, Response, Cookie
@@ -275,6 +276,22 @@ def get_current_user(session_id: Optional[str] = Cookie(None), db: Session = Dep
     return user
 
 app = FastAPI()
+
+# 1. Define the Volume paths (Railway compatible)
+BACKEND_DIR = Path(__file__).parent
+STORAGE_DIR = BACKEND_DIR / "storage"
+AUDIO_DIR = STORAGE_DIR / "voice_data"
+JSON_DIR = STORAGE_DIR / "voice_data_json"
+
+# 2. CREATE THE FOLDERS IF THEY DON'T EXIST
+# This is critical for empty volumes on first boot
+if not AUDIO_DIR.exists():
+    AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+    print("✓ Created audio directory in volume: storage/voice_data")
+
+if not JSON_DIR.exists():
+    JSON_DIR.mkdir(parents=True, exist_ok=True)
+    print("✓ Created JSON directory in volume: storage/voice_data_json")
 
 origins = [
     "http://localhost:3000",  # Next.js frontend (local dev)
