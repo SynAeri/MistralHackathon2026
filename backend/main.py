@@ -801,7 +801,7 @@ async def trigger_vapi_call(call_data: CallRequest, db: Session = Depends(get_db
             }
         },
         # THE FIX IS HERE:
-        "phoneNumberId": "YOUR_VAPI_PHONE_NUMBER_ID_HERE", # Note: It is 'phoneNumberId', not 'phoneNumber'
+        "phoneNumberId": "b7f527eb-7209-4a75-8712-0f2c2b5376db", # Note: It is 'phoneNumberId', not 'phoneNumber'
         "customer": {
             "number": patient.phone,
             "name": patient.name
