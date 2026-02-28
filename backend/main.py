@@ -1,19 +1,28 @@
 import os
+import json # Added for the analysis_json parsing
 from datetime import datetime, timedelta, date
 from typing import Optional
 import secrets
 from pathlib import Path
 from mistralai import Mistral
 from dotenv import load_dotenv
-from fastapi import FastAPI, Depends, HTTPException, status, Response, Cookie
+from fastapi import FastAPI, Depends, HTTPException, status, Response, Cookie, Request # Corrected imports
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session, relationship
 from passlib.context import CryptContext
+import httpx
+from fastapi import BackgroundTasks
 
 load_dotenv()
+api_key = os.environ.get("MISTRAL_API_KEY")
+model = "mistral-medium-latest"
+VAPI_API_KEY = os.getenv("VAPI_API_KEY")
+VAPI_URL = "https://api.vapi.ai/call/phone"
+
 api_key = os.environ["MISTRAL_API_KEY"]
 model = "mistral-medium-latest"
 
@@ -555,37 +564,56 @@ def get_patient_engagement(patient_id: int, db: Session = Depends(get_db)):
 # Voice Recording Endpoints
 ###
 
-@app.get("/api/patients/{patient_id}/VLatest")
-def get_latest_voice_recording(patient_id: int, db: Session = Depends(get_db)):
-    """Get the latest voice recording (audio file path) for a patient"""
 
-    # Verify patient exists
+# ========================================
+# FILE SERVING ENDPOINTS
+# ========================================
+
+@app.get("/api/audio/{filename}")
+def get_audio_file(filename: str):
+    """Serve the physical .wav file from the volume"""
+    file_path = AUDIO_DIR / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Audio file not found")
+    return FileResponse(path=file_path, media_type="audio/wav")
+
+@app.get("/api/analysis/{filename}")
+def get_analysis_file(filename: str):
+    """Serve the physical .json file from the volume"""
+    file_path = JSON_DIR / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Analysis file not found")
+    return FileResponse(path=file_path, media_type="application/json")
+
+# ========================================
+# UPDATED VOICE RECORDING ENDPOINTS
+# ========================================
+
+@app.get("/api/patients/{patient_id}/VLatest")
+def get_latest_voice_recording(patient_id: int, request: Request, db: Session = Depends(get_db)):
+    """Get the latest voice recording with a web-accessible URL"""
     patient = db.query(Patient).filter(Patient.id == patient_id).first()
     if not patient:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Patient with ID {patient_id} not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Patient {patient_id} not found")
 
-    # Get latest recording
     latest_recording = db.query(VoiceRecording)\
-        .filter(VoiceRecording.patient_id == patient_id)\
-        .order_by(VoiceRecording.recorded_at.desc())\
-        .first()
+    .filter(VoiceRecording.patient_id == patient_id)\
+    .order_by(VoiceRecording.recorded_at.desc())\
+    .first()
 
     if not latest_recording:
-        return {
-            "patient_id": patient_id,
-            "recording": None,
-            "message": "No voice recordings found for this patient"
-        }
+        return {"patient_id": patient_id, "recording": None}
+
+    base_url = str(request.base_url).rstrip("/")
 
     return {
         "patient_id": patient_id,
         "recording": {
             "id": latest_recording.id,
             "audio_file_name": latest_recording.audio_file_name,
-            "audio_file_path": latest_recording.audio_file_path,
+            # This makes it playable for the frontend
+            "audio_file_path": f"{base_url}/api/audio/{latest_recording.audio_file_name}",
+            "analysis_json_path": f"{base_url}/api/analysis/{Path(latest_recording.analysis_json_path).name}",
             "recorded_at": latest_recording.recorded_at.isoformat(),
             "duration_seconds": latest_recording.duration_seconds,
             "depression_score": latest_recording.depression_score,
@@ -593,39 +621,26 @@ def get_latest_voice_recording(patient_id: int, db: Session = Depends(get_db)):
         }
     }
 
-
 @app.get("/api/patients/{patient_id}/VAll")
-def get_all_voice_recordings(patient_id: int, db: Session = Depends(get_db)):
-    """Get all voice recordings (audio file paths) for a patient - list format"""
-
-    # Verify patient exists
+def get_all_voice_recordings(patient_id: int, request: Request, db: Session = Depends(get_db)):
+    """Get all voice recordings with web-accessible URLs"""
     patient = db.query(Patient).filter(Patient.id == patient_id).first()
     if not patient:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Patient with ID {patient_id} not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Patient {patient_id} not found")
 
-    # Get all recordings
     recordings = db.query(VoiceRecording)\
         .filter(VoiceRecording.patient_id == patient_id)\
         .order_by(VoiceRecording.recorded_at.desc())\
         .all()
 
-    if not recordings:
-        return {
-            "patient_id": patient_id,
-            "count": 0,
-            "recordings": [],
-            "message": "No voice recordings found for this patient"
-        }
+    base_url = str(request.base_url).rstrip("/")
 
-    # Return as list
     recordings_list = [
         {
             "id": rec.id,
             "audio_file_name": rec.audio_file_name,
-            "audio_file_path": rec.audio_file_path,
+            "audio_file_path": f"{base_url}/api/audio/{rec.audio_file_name}",
+            "analysis_json_path": f"{base_url}/api/analysis/{Path(rec.analysis_json_path).name}",
             "recorded_at": rec.recorded_at.isoformat(),
             "duration_seconds": rec.duration_seconds,
             "depression_score": rec.depression_score,
@@ -741,3 +756,57 @@ def get_patient_voice_biometrics(patient_id: int, db: Session = Depends(get_db))
         "last_analysis": vb.last_analysis.isoformat() if vb.last_analysis else None,
         "status": "active" if vb.voice_file_path else "pending"
     }
+
+
+# Vapi Configuration
+
+class CallRequest(BaseModel):
+    phone: str
+
+@app.post("/api/call")
+async def trigger_vapi_call(call_data: CallRequest, db: Session = Depends(get_db)):
+    # 1. Look up patient by phone (MRN context)
+    patient = db.query(Patient).filter(Patient.phone == call_data.phone).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    # 2. Vapi Payload configured for Mistral + ElevenLabs
+    payload = {
+        "assistant": {
+            "maxDurationSeconds": 60,
+            "name": f"Clinical Assistant for {patient.name}",
+            "firstMessage": f"Hello {patient.name}, I'm calling from the clinic to see how you're feeling today.",
+            "model": {
+                "provider": "mistral", # Explicitly using Mistral
+                "model": "mistral-small", # Optimized for low latency
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a professional clinical assistant. Ask the patient about their sleep and anxiety."
+                    }
+                ]
+            },
+            "voice": {
+                "provider": "11labs", # Explicitly using ElevenLabs
+                "voiceId": "elliot", # Your specific ElevenLabs Voice ID
+                "stability": 0.5,
+                "similarityBoost": 0.75
+            }
+        },
+        "phoneNumber": patient.phone,
+        "customer": {
+            "number": patient.phone,
+            "name": patient.name
+        },
+        # This tells Vapi to send the .wav back to your Railway Volume
+        "serverUrl": "https://mistralhackathon2026-production.up.railway.app/api/webhook/vapi"
+    }
+
+    headers = {
+        "Authorization": f"Bearer {VAPI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(VAPI_URL, json=payload, headers=headers)
+        return response.json()
