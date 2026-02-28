@@ -1,0 +1,115 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2026-03-01T06:38:31.331710",
+    "audio_file": "/home/jordanm/Documents/Github/MistralHackathon2026/backend/voice_data/MRN-3194872_7.wav",
+    "patient_id": "MRN-3194872",
+    "clinical_context": "depression and anxiety screening",
+    "pipeline_version": "1.0.0-kintsugi"
+  },
+  "kintsugi_scores": {
+    "depression": {
+      "severity_score": 0,
+      "severity_label": "No depression (PHQ-9 \u2264 9)",
+      "raw_score": -1.496922492980957
+    },
+    "anxiety": {
+      "severity_score": 0,
+      "severity_label": "No anxiety (GAD-7 \u2264 4)",
+      "raw_score": -1.2560886144638062
+    }
+  },
+  "acoustic_parameters": {
+    "quality_control": {
+      "passed": true,
+      "warnings": [],
+      "speech_ratio_check": true,
+      "voiced_frames_check": true,
+      "voiced_frame_count": 1164,
+      "speech_ratio_value": 0.8031251092389974
+    },
+    "temporal": {
+      "pause_duration_mean_sec": 0.231,
+      "pause_duration_median_sec": 0.20800000000000002,
+      "pause_duration_p95_sec": 0.5871999999999999,
+      "pause_duration_total_sec": 7.392000000000001,
+      "pause_rate_per_min": 51.13633526259807,
+      "speech_duration_sec": 30.154687499999994,
+      "speech_ratio": 0.8031251092389974,
+      "total_duration_sec": 37.5466875
+    },
+    "prosodic": {
+      "speech_rate_segments_per_sec": 0.8789057623259043,
+      "intensity_mean_rms": 0.1058042123913765,
+      "energy_variability_iqr": 0.1169819887727499,
+      "energy_variability_std": 0.07158675789833069,
+      "f0_mean_hz": 568.0265502929688,
+      "f0_median_hz": 262.6378173828125,
+      "f0_std_hz": 797.1405029296875,
+      "f0_iqr_hz": 199.41445922851562,
+      "f0_range_hz": 3834.91455078125,
+      "f0_min_hz": 152.765625,
+      "f0_max_hz": 3987.68017578125,
+      "f0_p25_hz": 223.89947509765625,
+      "f0_p75_hz": 423.3139343261719,
+      "f0_slope": -0.07311483728476505,
+      "stress_frequency_per_sec": 1.4648429372098406,
+      "rhythm_regularity_std_sec": 0.5786060828246851
+    },
+    "spectral": {
+      "mfcc_1_mean": -205.83091735839844,
+      "mfcc_2_mean": 73.80325317382812,
+      "mfcc_3_mean": 14.24007797241211,
+      "mfcc_4_mean": 31.79012680053711,
+      "mfcc_5_mean": -11.912102699279785,
+      "mfcc_6_mean": 10.156143188476562,
+      "mfcc_7_mean": -4.275015354156494,
+      "mfcc_8_mean": -15.198713302612305,
+      "mfcc_9_mean": -9.55593204498291,
+      "mfcc_10_mean": -4.10327672958374,
+      "mfcc_11_mean": -12.026400566101074,
+      "mfcc_12_mean": -1.3414121866226196,
+      "mfcc_13_mean": -3.6343767642974854,
+      "spectral_centroid_mean_hz": 2004.54000131455,
+      "spectral_centroid_std_hz": 1260.4428642073128,
+      "spectral_rolloff_mean_hz": 3790.6130217206132,
+      "spectral_bandwidth_mean_hz": 1694.7306191858454,
+      "cpp": 0.05881133342977797,
+      "zero_crossing_rate_mean": 0.15351995048977854
+    },
+    "perturbation": {
+      "jitter_percent": 37.50346601009369,
+      "shimmer_percent": 16.375672817230225,
+      "reliable": true,
+      "note": "Perturbation features computed successfully."
+    },
+    "spectral_quality": {
+      "hnr_db": 1.3029779493808746
+    }
+  },
+  "spectrogram": {
+    "path": null,
+    "duration": null
+  },
+  "clinical_analysis": {
+    "llm_interpretation": "### **Clinical Analysis of Voice Data for Depression & Anxiety Screening**\n\n#### **1. Interpretation of Kintsugi Depression & Anxiety Severity Scores**\nThe **Kintsugi model** provides standardized severity scores for depression (PHQ-9) and anxiety (GAD-7), both of which fall within **non-clinical ranges**:\n- **Depression Severity (PHQ-9 \u2264 9):** The **Severity Score (0/2)** and **Raw Score (-1.497)** suggest **no depressive symptoms** at this time. The negative raw score may indicate a **baseline or subclinical profile** rather than elevated distress.\n- **Anxiety Severity (GAD-7 \u2264 4):** The **Severity Score (0/3)** and **Raw Score (-1.256)** similarly indicate **no significant anxiety symptoms**. As with depression, the negative raw score may reflect **low baseline arousal or emotional neutrality**.\n\n**Clinical Implication:**\n- The **lack of elevated depression/anxiety symptoms** based on self-report (PHQ-9/GAD-7) suggests the individual is **not currently experiencing clinically significant mood or anxiety disorders**.\n- However, **voice analysis may reveal subclinical or early-stage emotional dysregulation** that could warrant further monitoring.\n\n---\n\n#### **2. Acoustic Voice Parameters: Contextualizing the Kintsugi Scores**\nWhile the Kintsugi model suggests **no depression/anxiety**, the **acoustic voice parameters** provide **subtle but clinically relevant insights** that may indicate **emotional lability, stress vulnerability, or early-stage affective dysregulation**.\n\n##### **A. Prosodic Features (Emotional Expression & Speech Style)**\n| **Parameter**       | **Value**       | **Clinical Interpretation** |\n|---------------------|----------------|----------------------------|\n| **Pitch Mean (568 Hz)** | Low-normal (average ~200-300 Hz for women, ~100-150 Hz for men) | Suggests **neutral or slightly low-pitched speech**, which may correlate with **emotional flatness** (though not diagnostic of depression). |\n| **Pitch Variability (797 Hz)** | **High** (typical range: 50-200 Hz) | **Excessive pitch fluctuation** may indicate:\n   - **Emotional lability** (rapid shifts in affect)\n   - **Stress or anxiety vulnerability** (even if GAD-7 is low)\n   - **Possible subclinical depression** (if paired with other features) |\n| **Pitch Range (3834 Hz)** | **Very wide** (typically 1-2 octaves in healthy speech) | **Extreme variability** suggests **emotional intensity fluctuations**, possibly linked to **mood instability** (e.g., early-stage depression or anxiety). |\n| **Loudness (0.1058 RMS)** | **Low** (typical: 0.15-0.3) | **Hypophonia (soft speech)** can be associated with:\n   - **Depressive withdrawal** (though PHQ-9 is low)\n   - **Fatigue or low energy** (subclinical stress) |\n| **Energy Variability (0.1170 IQR)** | **High** (typical: <0.05) | **Volatile energy levels** may reflect **emotional dysregulation**, even in the absence of clinical anxiety. |\n| **Speech Rate (0.88 seg/sec)** | **Slow** (typical: 1.5-2.5 seg/sec) | **Bradyphrenia (slowed thought process)** can be a **subtle depressive marker**, though PHQ-9 suggests no current depression. |\n\n**Key Takeaway:**\n- **High pitch variability + wide pitch range + slow speech rate** suggest **emotional instability**, which may precede **clinical depression/anxiety** or indicate **subclinical stress**.\n- **Low loudness** could imply **emotional withdrawal**, but the **lack of PHQ-9 elevation** suggests this may be **non-pathological fatigue** rather than depression.\n\n---\n\n##### **B. Temporal Features (Speech Flow & Pauses)**\n| **Parameter**       | **Value**       | **Clinical Interpretation** |\n|---------------------|----------------|----------------------------|\n| **Pause Duration (0.23 s)** | **Short** (typical: 0.3-0.5 s) | **Fewer prolonged pauses** may indicate **speech pressured** (seen in mania/anxiety), but **slow speech rate** contradicts this. |\n| **Pause Rate (51.1/min)** | **High** (typical: 20-30/min) | **Excessive pauses",
+    "clinical_summary": "**Clinical Summary Report: Voice Screening for Depression & Anxiety**\n\n**Patient:** [Name/ID]\n**Date:** [Insert Date]\n**Screening Purpose:** Voice analysis for subclinical emotional dysregulation\n\n---\n### **Brief Overview**\nThis report summarizes the findings from a **voice-based depression and anxiety screening** using the **Kintsugi model (PHQ-9/GAD-7)** and **acoustic voice analysis**. While self-reported mood measures indicate **no clinically significant depression or anxiety**, **subtle acoustic abnormalities** suggest **emotional lability, stress vulnerability, or early-stage affective dysregulation**. Further clinical correlation is recommended.\n\n---\n### **Key Findings**\n\n#### **1. Kintsugi Depression & Anxiety Scores (PHQ-9/GAD-7)**\n- **Depression (PHQ-9):**\n  - Severity Score: **0/2** (non-clinical)\n  - Raw Score: **-1.497** (baseline/subclinical)\n  - **Interpretation:** No elevated depressive symptoms detected.\n\n- **Anxiety (GAD-7):**\n  - Severity Score: **0/3** (non-clinical)\n  - Raw Score: **-1.256** (baseline/subclinical)\n  - **Interpretation:** No significant anxiety symptoms detected.\n\n#### **2. Acoustic Voice Parameters (Suggesting Subclinical Dysregulation)**\n- **Prosodic Features:**\n  - **High pitch variability (797 Hz)** and **wide pitch range (3834 Hz)** \u2192 **Emotional lability or stress vulnerability**\n  - **Low loudness (0.1058 RMS)** \u2192 **Hypophonia (possible fatigue/withdrawal)**\n  - **Slow speech rate (0.88 seg/sec)** \u2192 **Bradyphrenia (subtle depressive marker)**\n  - **High energy variability (0.1170 IQR)** \u2192 **Emotional dysregulation**\n\n- **Temporal Features:**\n  - **High pause rate (51.1/min)** \u2192 **Speech hesitancy or cognitive load**\n  - **Short pause duration (0.23 s)** \u2192 **Potential speech pressure (contradicted by slow rate)**\n\n---\n### **Clinical Recommendations**\n- **Monitoring:** Given **subclinical acoustic abnormalities** (e.g., pitch variability, slow speech, pauses), consider **follow-up voice screening** (e.g., 3\u20136 months) to assess for **progression of emotional dysregulation**.\n- **Contextual Assessment:** If **fatigue, stress, or recent life changes** are present, these may explain **subclinical voice markers** without clinical depression/anxiety.\n- **Referral Considerations:**\n  - If **symptoms persist or worsen**, recommend **psychiatric evaluation** (even if PHQ-9/GAD-7 remain low).\n  - For **high-stress populations** (e.g., healthcare workers, caregivers), **early intervention (CBT, stress management)** may mitigate risk.\n- **Follow-Up:** Repeat screening if **new emotional complaints** arise (e.g., irritability, sleep disturbances).\n\n---\n### **Disclaimer**\nThis report is a **screening tool** and **not a diagnostic substitute**. Clinical judgment should incorporate:\n- **Patient history** (e.g., mood, sleep, stress)\n- **Behavioral observations**\n- **Professional evaluation** (e.g., PHQ-9/GAD-7 administered by a clinician)\n\n**Next Steps:** If concerns persist, consult a **mental health professional** for comprehensive assessment.\n\n---\n**Generated by:** [Your Institution/Software Name]\n**For medical record use only.**",
+    "model_used": "ministral-8b-latest"
+  },
+  "parameters_summary": {
+    "pitch_mean_hz": 568.0265502929688,
+    "pitch_variability_hz": 797.1405029296875,
+    "pitch_range_hz": 3834.91455078125,
+    "loudness_rms": 0.1058042123913765,
+    "energy_variability_iqr": 0.1169819887727499,
+    "speech_rate_segments_per_sec": 0.8789057623259043,
+    "pause_duration_mean_sec": 0.231,
+    "pause_rate_per_min": 51.13633526259807,
+    "speech_ratio": 0.8031251092389974,
+    "total_duration_sec": 37.5466875,
+    "voice_brightness_hz": 2004.54000131455,
+    "cpp": 0.05881133342977797,
+    "jitter_percent": 37.50346601009369,
+    "shimmer_percent": 16.375672817230225,
+    "hnr_db": 1.3029779493808746
+  }
+}
