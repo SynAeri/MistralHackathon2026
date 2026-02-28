@@ -1,4 +1,9 @@
 # ========================================
+# MISTRAL HACKATHON 2026 - BACKEND REQUIREMENTS
+# Voice Analysis with Kintsugi Depression/Anxiety Model
+# ========================================
+
+# ========================================
 # WEB FRAMEWORK
 # ========================================
 fastapi==0.115.0
@@ -18,31 +23,36 @@ sqlalchemy==2.0.36
 email-validator==2.2.0
 
 # ========================================
-# MISTRAL AI
+# CORE DEPENDENCIES
 # ========================================
-mistralai==1.2.4
-python-dotenv==1.0.1
+numpy==1.26.4
+scipy==1.14.1
+python-dotenv==1.0.0
+requests>=2.31.0
 
 # ========================================
-# VOICE ANALYSIS (for voice-analysis-system)
+# AUDIO PROCESSING
 # ========================================
 librosa==0.10.2.post1
 matplotlib==3.9.3
-numpy==1.26.4
-scipy==1.14.1
 soundfile==0.12.1
-audioread==3.0.1
 
 # ========================================
-# HTTP REQUESTS
+# DEEP LEARNING (Kintsugi Model)
 # ========================================
-requests==2.32.3
-# httpx version controlled by mistralai package
+torch>=2.0.0
+torchaudio>=2.0.0
+torchcodec>=0.10.0
+transformers>=4.30.0
+peft>=0.4.0
 
 # ========================================
-# OPTIONAL: Local Ministral Model (HuggingFace)
+# MISTRAL LLM
 # ========================================
-# Uncomment if using local model instead of API
-# transformers==4.46.0
-# torch==2.5.1
-# accelerate==1.2.1
+mistralai==1.2.4
+
+# ========================================
+# OPTIONAL: FHIR Integration
+# ========================================
+# Uncomment if you need FHIR output
+# fhir.resources==7.0.0
