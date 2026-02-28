@@ -4,6 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 function normalizePatient(patient) {
+  const fallbackRiskByStatus = {
+    Active: "Low",
+    "Follow-up": "Medium",
+    Pending: "High",
+  };
+
   return {
     id: patient.id,
     mrn: patient.mrn,
@@ -12,9 +18,26 @@ function normalizePatient(patient) {
     gender: patient.gender,
     lastVisit: patient.last_visit ?? "-",
     nextAppointment: patient.next_appointment ?? "-",
+    risk: patient.risk ?? fallbackRiskByStatus[patient.status] ?? "Undetermined",
     status: patient.status,
     phone: patient.phone,
   };
+}
+
+function getRiskBadgeClasses(risk) {
+  if (risk === "High") {
+    return "border border-rose-200 bg-rose-100 text-rose-700";
+  }
+
+  if (risk === "Medium") {
+    return "border border-amber-200 bg-amber-100 text-amber-700";
+  }
+
+  if (risk === "Low") {
+    return "border border-emerald-200 bg-emerald-100 text-emerald-700";
+  }
+
+  return "border border-violet-200 bg-violet-100 text-violet-700";
 }
 
 export default function Home() {
@@ -123,21 +146,21 @@ export default function Home() {
           <tbody>
             {isLoading && (
               <tr>
-                <td className="px-6 py-8 text-center text-gray-500" colSpan={9}>
+                <td className="px-6 py-8 text-center text-gray-500" colSpan={10}>
                   Loading patients...
                 </td>
               </tr>
             )}
             {!isLoading && error && (
               <tr>
-                <td className="px-6 py-8 text-center text-red-500" colSpan={9}>
+                <td className="px-6 py-8 text-center text-red-500" colSpan={10}>
                   {error}
                 </td>
               </tr>
             )}
             {!isLoading && !error && filteredPatients.length === 0 && (
               <tr>
-                <td className="px-6 py-8 text-center text-gray-500" colSpan={9}>
+                <td className="px-6 py-8 text-center text-gray-500" colSpan={10}>
                   No patients found.
                 </td>
               </tr>
@@ -149,27 +172,22 @@ export default function Home() {
                 <td className="px-6 py-3 text-gray-600">{patient.age}</td>
                 <td className="px-6 py-3 text-gray-600">{patient.gender}</td>
                 <td className="px-6 py-3 text-gray-600">{patient.lastVisit}</td>
-                                <td className="px-6 py-3 text-gray-600">{patient.lastVisit}</td>
-
+                <td className="px-6 py-3 text-gray-600">{patient.lastVisit}</td>
                 <td className="px-6 py-3 text-gray-600">{patient.nextAppointment}</td>
                 <td className="px-6 py-3">
                   <span
-                    className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${
-                      patient.status === "Low"
-                        ? "bg-green-200 text-green-800"
-                        : patient.status === "Medium"
-                        ? "bg-yellow-200 text-yellow-800":  patient.status === "Undetermined"? "bg-yellow-200 text-yellow-800"
-                        : "bg-gray-200 text-red-800"
-                    }`}
+                    className={`inline-block min-w-28 rounded-full px-3 py-1 text-center text-sm font-semibold ${getRiskBadgeClasses(
+                      patient.risk
+                    )}`}
                   >
-                    {patient.status}
+                    {patient.risk}
                   </span>
                 </td>
                 <td className="px-6 py-3 text-gray-600">{patient.phone}</td>
-                <td className="px-6 py-3">
+                <td className="px-6 py-3 text-center">
                   <Link
                     href={`/patients/${patient.id}`}
-                    className="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-base font-bold leading-none text-blue-600 transition hover:border-blue-300 hover:bg-blue-100"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-lg font-bold text-blue-600 transition hover:border-blue-300 hover:bg-blue-100"
                     aria-label={`View details for ${patient.name}`}
                   >
                     &rarr;
