@@ -1,7 +1,11 @@
 import Link from "next/link";
-import AudioRecordingControl from "./AudioRecordingControl";
+import { readdir } from "fs/promises";
+import path from "path";
 import AudioArchive from "./AudioArchive";
 import SendConfirmationButton from "./SendConfirmationButton";
+
+const PUBLIC_AUDIO_DIR = path.join(process.cwd(), "public");
+const AUDIO_FILE_PATTERN = /\.(mp3|wav|m4a|ogg|aac)$/i;
 
 function normalizePatient(patient) {
   return {
@@ -50,7 +54,180 @@ function normalizeEngagementPayload(payload) {
   };
 }
 
-function buildUiModel(patient, diagnosisData, engagementData) {
+function formatDurationSeconds(durationSeconds) {
+  const totalSeconds = Number(durationSeconds);
+
+  if (!Number.isFinite(totalSeconds) || totalSeconds < 0) {
+    return "--:--";
+  }
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function buildFallbackRecordingDate(itemIndex) {
+  const baseDate = new Date(Date.UTC(2026, 2, 1, 9, 30));
+  baseDate.setUTCDate(baseDate.getUTCDate() - itemIndex * 2);
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(baseDate);
+}
+
+async function getLocalAudioSources() {
+  try {
+    const entries = await readdir(PUBLIC_AUDIO_DIR, { withFileTypes: true });
+
+    return entries
+      .filter((entry) => entry.isFile() && AUDIO_FILE_PATTERN.test(entry.name))
+      .map((entry) => `/${encodeURIComponent(entry.name)}`)
+      .sort((left, right) => left.localeCompare(right));
+  } catch {
+    return [];
+  }
+}
+
+function toPublicAudioSrc(rawPath, fileName) {
+  const directSource =
+    typeof rawPath === "string" &&
+    (rawPath.startsWith("http://") || rawPath.startsWith("https://"));
+  if (directSource) {
+    return rawPath;
+  }
+
+  const sourceCandidate = fileName ?? rawPath;
+  if (!sourceCandidate || typeof sourceCandidate !== "string") {
+    return null;
+  }
+
+  const normalizedPath = sourceCandidate.replaceAll("\\", "/").trim();
+  const filePart = normalizedPath.split("/").filter(Boolean).at(-1);
+
+  if (!filePart) {
+    return null;
+  }
+
+  return `/${encodeURIComponent(filePart)}`;
+}
+
+function buildLocalAudioItem(audioSrc, itemIndex) {
+  const fileName = decodeURIComponent(audioSrc.replace(/^\//, ""));
+  const number = itemIndex + 1;
+
+  return {
+    id: `local-${number}`,
+    title: fileName,
+    date: buildFallbackRecordingDate(itemIndex),
+    duration: "--:--",
+    audioSrc,
+  };
+}
+
+function normalizeAudioItem(item, fallbackIndex = 0, fallbackAudioSources = []) {
+  if (!item || typeof item !== "object") {
+    const fallbackAudioSrc = fallbackAudioSources[fallbackIndex] ?? fallbackAudioSources[0] ?? null;
+
+    if (fallbackAudioSrc) {
+      return buildLocalAudioItem(fallbackAudioSrc, fallbackIndex);
+    }
+
+    const number = fallbackIndex + 1;
+    return {
+      id: `rec-${number}`,
+      title: `Recording ${String(number).padStart(2, "0")}`,
+      date: `2026-02-${String(Math.max(1, 28 - fallbackIndex)).padStart(2, "0")}`,
+      duration: "--:--",
+      audioSrc: null,
+    };
+  }
+
+  const number = fallbackIndex + 1;
+  const audioSrc =
+    item.audioSrc ??
+    item.audio_url ??
+    item.audioUrl ??
+    toPublicAudioSrc(
+      item.audio_file_path ?? item.file_path ?? item.path,
+      item.audio_file_name
+    ) ??
+    fallbackAudioSources[fallbackIndex] ??
+    fallbackAudioSources[0] ??
+    null;
+
+  return {
+    id: String(item.id ?? `rec-${number}`),
+    title:
+      item.title ??
+      item.name ??
+      item.label ??
+      item.audio_file_name ??
+      `Recording ${String(number).padStart(2, "0")}`,
+    date:
+      item.date ??
+      item.recorded_at ??
+      item.created_at ??
+      item.timestamp ??
+      buildFallbackRecordingDate(fallbackIndex),
+    duration:
+      item.duration ??
+      item.length ??
+      item.time ??
+      formatDurationSeconds(item.duration_seconds),
+    audioSrc,
+  };
+}
+
+function mergeLatestAudioIntoRecordings(latestAudio, recordings) {
+  if (recordings.length === 0) {
+    return latestAudio?.audioSrc ? [latestAudio] : [];
+  }
+
+  if (!latestAudio?.audioSrc) {
+    return recordings;
+  }
+
+  if (String(recordings[0].id) === String(latestAudio.id)) {
+    return recordings;
+  }
+
+  return [latestAudio, ...recordings.filter((recording) => String(recording.id) !== String(latestAudio.id))];
+}
+
+function normalizeLatestAudioPayload(payload, fallbackAudioSources) {
+  const candidate =
+    payload?.latest ??
+    payload?.audio ??
+    payload?.recording ??
+    (Array.isArray(payload) ? payload[0] : payload);
+
+  return normalizeAudioItem(candidate, 0, fallbackAudioSources);
+}
+
+function normalizeAllAudioPayload(payload, fallbackAudioSources) {
+  const list =
+    (Array.isArray(payload) && payload) ||
+    payload?.audios ||
+    payload?.audio ||
+    payload?.recordings ||
+    payload?.items ||
+    [];
+
+  if (!Array.isArray(list) || list.length === 0) {
+    if (fallbackAudioSources.length > 0) {
+      return fallbackAudioSources.map((audioSrc, itemIndex) => buildLocalAudioItem(audioSrc, itemIndex));
+    }
+
+    return Array.from({ length: 9 }, (_, itemIndex) => normalizeAudioItem(null, itemIndex, []));
+  }
+
+  return list.map((item, itemIndex) => normalizeAudioItem(item, itemIndex, fallbackAudioSources));
+}
+
+function buildUiModel(patient, diagnosisData, engagementData, latestAudio, recordings) {
   const assignedClinicians = [
     "Dr. William Carter",
     "Dr. Maya Singh",
@@ -82,20 +259,6 @@ function buildUiModel(patient, diagnosisData, engagementData) {
     lower: "Within baseline",
     undetermined: "No baseline yet",
   };
-  const recordings = Array.from({ length: 9 }, (_, itemIndex) => {
-    const number = itemIndex + 1;
-    const minutes = number < 4 ? "01" : number < 7 ? "00" : "02";
-    const seconds = String((number * 7) % 60).padStart(2, "0");
-
-    return {
-      id: `rec-${number}`,
-      title: `Recording ${String(number).padStart(2, "0")}`,
-      date: `2026-02-${String(28 - itemIndex).padStart(2, "0")}`,
-      duration: `${minutes}:${seconds}`,
-      audioSrc: "/Sample_1.wav",
-    };
-  });
-
   return {
     diagnosis: diagnosisData.diagnosis,
     diagnosisStatus: monitorStatusMap[diagnosisData.status] ?? "REVIEW",
@@ -105,7 +268,7 @@ function buildUiModel(patient, diagnosisData, engagementData) {
     requestedDate: patient.nextAppointment === "-" ? "March 5, 2026" : patient.nextAppointment,
     requestedTime: "2:30 PM",
     latestCheckInDate: "Apr 22, 2024, 4:05PM",
-    // duration: "65 seconds",
+    latestAudio,
     transcript: transcriptMap[index],
     recordings,
     completion: Math.round(engagementData.callPercentage),
@@ -179,12 +342,16 @@ function buildUiModel(patient, diagnosisData, engagementData) {
 export default async function PatientDetailPage({ params }) {
   const { id } = await params;
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+  const localAudioSources = await getLocalAudioSources();
   let patientResponse;
   let diagnosisPayload = null;
   let engagementPayload = null;
+  let latestAudioPayload = null;
+  let allAudioPayload = null;
 
   try {
-    const [patientResult, diagnosisResult, engagementResult] = await Promise.all([
+    const [patientResult, diagnosisResult, engagementResult, latestAudioResult, allAudioResult] =
+      await Promise.all([
       fetch(`${apiBaseUrl}/api/patients/${id}`, {
         cache: "no-store",
       }),
@@ -192,6 +359,12 @@ export default async function PatientDetailPage({ params }) {
         cache: "no-store",
       }),
       fetch(`${apiBaseUrl}/api/patients/${id}/engag`, {
+        cache: "no-store",
+      }),
+      fetch(`${apiBaseUrl}/api/patients/${id}/VLatest`, {
+        cache: "no-store",
+      }),
+      fetch(`${apiBaseUrl}/api/patients/${id}/VAll`, {
         cache: "no-store",
       }),
     ]);
@@ -204,6 +377,14 @@ export default async function PatientDetailPage({ params }) {
 
     if (engagementResult.ok) {
       engagementPayload = await engagementResult.json();
+    }
+
+    if (latestAudioResult.ok) {
+      latestAudioPayload = await latestAudioResult.json();
+    }
+
+    if (allAudioResult.ok) {
+      allAudioPayload = await allAudioResult.json();
     }
   } catch {
     return (
@@ -247,7 +428,12 @@ export default async function PatientDetailPage({ params }) {
   const patient = normalizePatient(await patientResponse.json());
   const diagnosisData = normalizeDiagnosisPayload(diagnosisPayload);
   const engagementData = normalizeEngagementPayload(engagementPayload);
-  const ui = buildUiModel(patient, diagnosisData, engagementData);
+  const latestAudio = normalizeLatestAudioPayload(latestAudioPayload, localAudioSources);
+  const recordings = mergeLatestAudioIntoRecordings(
+    latestAudio,
+    normalizeAllAudioPayload(allAudioPayload, localAudioSources)
+  );
+  const ui = buildUiModel(patient, diagnosisData, engagementData, latestAudio, recordings);
   const statusBadgeStyles = {
     red: "border-rose-400 bg-rose-50 text-rose-700",
     amber: "border-amber-400 bg-amber-50 text-amber-700",
@@ -270,10 +456,10 @@ export default async function PatientDetailPage({ params }) {
         <section className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)] md:p-9">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-[-0.03em] text-slate-800 md:text-4xl">
+              <h1 className="text-2xl font-bold tracking-[-0.03em] text-slate-800 md:text-3xl">
                 {patient.name}
               </h1>
-              <div className="mt-5 flex flex-wrap gap-x-10 gap-y-3 text-lg text-slate-600">
+              <div className="mt-5 flex flex-wrap gap-x-8 gap-y-3 text-base text-slate-600">
                 <p>DOB: 08/12/1985 (Age {patient.age})</p>
                 <p>MRN: {patient.mrn}</p>
                 <p>{patient.phone}</p>
@@ -344,7 +530,7 @@ export default async function PatientDetailPage({ params }) {
             </section>
 
             <section className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
-              <h2 className="text-3xl font-bold tracking-[-0.03em] text-slate-800">
+              <h2 className="text-2xl font-bold tracking-[-0.03em] text-slate-800">
                 Engagement &amp; Adherence
               </h2>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -365,17 +551,12 @@ export default async function PatientDetailPage({ params }) {
           </div>
 
           <aside className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
-            <h2 className="text-3xl font-bold tracking-[-0.03em] text-slate-800">Latest Check-In</h2>
+            <h2 className="text-2xl font-bold tracking-[-0.03em] text-slate-800">Latest Check-In</h2>
             <div className="mt-8 space-y-6 text-slate-700">
               <InfoRow label="Date & Time" value={ui.latestCheckInDate} />
-              {/* <InfoRow label="Duration" value={ui.duration} /> */}
 
               <div>
-                <p className="text-xl font-medium text-slate-500">Audio Recording</p>
-                <AudioRecordingControl />
-              </div>
-
-              <div>
+                <p className="text-lg font-medium text-slate-500">Recordings</p>
                 <AudioArchive recordings={ui.recordings} />
               </div>
 
@@ -390,7 +571,7 @@ export default async function PatientDetailPage({ params }) {
         </div>
 
         <section className="mt-6 rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
-          <h2 className="text-3xl font-bold tracking-[-0.03em] text-slate-800">
+          <h2 className="text-2xl font-bold tracking-[-0.03em] text-slate-800">
             Voice Biomarkers (Change vs Baseline)
           </h2>
           <div className="mt-6 grid gap-5 xl:grid-cols-2">
@@ -416,8 +597,8 @@ function DetailCard({ label, value }) {
 function InfoRow({ label, value }) {
   return (
     <div>
-      <p className="text-lg font-medium text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-slate-800">{value}</p>
+      <p className="text-base font-medium text-slate-500">{label}</p>
+      <p className="mt-2 text-xl font-semibold tracking-[-0.02em] text-slate-800">{value}</p>
     </div>
   );
 }
@@ -430,9 +611,9 @@ function MetricCard({ label, value, detail, tone }) {
 
   return (
     <div className={`rounded-[1.6rem] border p-6 ${styles}`}>
-      <p className="text-lg font-medium">{label}</p>
+      <p className="text-base font-medium">{label}</p>
       <div className="mt-5 flex items-end gap-3">
-        <p className="text-5xl font-bold tracking-[-0.04em]">{value}</p>
+        <p className="text-3xl font-bold tracking-[-0.04em]">{value}</p>
         <p className="pb-2 text-base">{detail}</p>
       </div>
     </div>
@@ -474,8 +655,8 @@ function BiomarkerCard({ item }) {
         <div>
           <p className="text-lg font-semibold text-slate-800">{item.title}</p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
-            <p className="text-4xl font-bold tracking-[-0.04em] text-slate-800">{item.value}</p>
-            <p className="pb-2 text-lg text-slate-500">{item.unit}</p>
+            <p className="text-2xl font-bold tracking-[-0.04em] text-slate-800">{item.value}</p>
+            <p className="pb-2 text-base text-slate-500">{item.unit}</p>
             <p className={`pb-2 text-base font-medium ${style.value}`}>{item.delta}</p>
           </div>
         </div>
