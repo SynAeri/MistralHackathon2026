@@ -30,7 +30,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Session storage (in-memory for simplicity, use Redis for production)
 sessions = {}
 
-# Models for login details
+# ========================================
+# DATABASE MODELS
+# ========================================
+
+# User model for authentication
 class User(Base):
     __tablename__ = "users"
 
@@ -40,7 +44,26 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-# Pydantic schemas
+# Patient model for clinical records
+class Patient(Base):
+    __tablename__ = "patients"
+
+    id = Column(Integer, primary_key=True, index=True)
+    mrn = Column(String, unique=True, index=True, nullable=False)  # Medical Record Number
+    name = Column(String, nullable=False, index=True)
+    age = Column(Integer, nullable=False)
+    gender = Column(String, nullable=False)  # "M" or "F"
+    last_visit = Column(String, nullable=True)  # Date string (e.g., "2026-02-25")
+    next_appointment = Column(String, nullable=True)  # Date string or "-"
+    status = Column(String, nullable=False)  # "Active", "Follow-up", "Pending"
+    phone = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ========================================
+# PYDANTIC SCHEMAS
+# ========================================
 
 ###
 # User Schema practicioner thingy
@@ -66,14 +89,45 @@ class UserResponse(BaseModel):
 
 
 ###
-# Patient Schema
+# Patient Schemas
 ###
 
 class PatientCreate(BaseModel):
-    firstName: str
-    lastName: str
-    dob: date
-    # audio: Optional[str]  # TODO: Implement file upload handling
+    mrn: str
+    name: str
+    age: int
+    gender: str  # "M" or "F"
+    last_visit: Optional[str] = None
+    next_appointment: Optional[str] = None
+    status: str = "Active"  # "Active", "Follow-up", "Pending"
+    phone: str
+
+class PatientUpdate(BaseModel):
+    name: Optional[str] = None
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    last_visit: Optional[str] = None
+    next_appointment: Optional[str] = None
+    status: Optional[str] = None
+    phone: Optional[str] = None
+
+class PatientResponse(BaseModel):
+    id: int
+    mrn: str
+    name: str
+    age: int
+    gender: str
+    last_visit: Optional[str]
+    next_appointment: Optional[str]
+    status: str
+    phone: str
+
+    class Config:
+        from_attributes = True
+
+# ========================================
+# END SCHEMA
+# ========================================
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -128,8 +182,9 @@ def get_current_user(session_id: Optional[str] = Cookie(None), db: Session = Dep
 app = FastAPI()
 
 origins = [
-    "http://localhost:8080",
-    "http://localhost:8000",
+    "http://localhost:3000",  # Next.js frontend (default)
+    "http://localhost:8080",  # Alternative frontend port
+    "http://localhost:8000",  # Backend docs
 ]
 
 app.add_middleware(
@@ -220,3 +275,125 @@ def logout(response: Response, session_id: Optional[str] = Cookie(None)):
 @app.get("/api/auth/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+# ========================================
+# PATIENT ENDPOINTS
+# ========================================
+
+@app.get("/api/patients", response_model=list[PatientResponse])
+def get_patients(
+    search: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Get all patients with optional real-time search filter
+
+    Args:
+        search: Optional search term to filter by name, MRN, or phone
+    """
+    query = db.query(Patient)
+
+    # Apply real-time search filter if provided
+    if search:
+        search_term = f"%{search.lower()}%"
+        query = query.filter(
+            (Patient.name.ilike(search_term)) |
+            (Patient.mrn.ilike(search_term)) |
+            (Patient.phone.ilike(search_term))
+        )
+
+    patients = query.order_by(Patient.id).all()
+    return patients
+
+@app.get("/api/patients/{patient_id}", response_model=PatientResponse)
+def get_patient(patient_id: int, db: Session = Depends(get_db)):
+    """Get a specific patient by ID"""
+    patient = db.query(Patient).filter(Patient.id == patient_id).first()
+
+    if not patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Patient with ID {patient_id} not found"
+        )
+
+    return patient
+
+
+###
+# Create Patients
+###
+
+@app.post("/api/patients", response_model=PatientResponse, status_code=status.HTTP_201_CREATED)
+def create_patient(patient_data: PatientCreate, db: Session = Depends(get_db)):
+    """Create a new patient record"""
+
+    # Check if MRN already exists
+    existing_patient = db.query(Patient).filter(Patient.mrn == patient_data.mrn).first()
+    if existing_patient:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Patient with MRN {patient_data.mrn} already exists"
+        )
+
+    # Create new patient
+    new_patient = Patient(
+        mrn=patient_data.mrn,
+        name=patient_data.name,
+        age=patient_data.age,
+        gender=patient_data.gender,
+        last_visit=patient_data.last_visit,
+        next_appointment=patient_data.next_appointment,
+        status=patient_data.status,
+        phone=patient_data.phone
+    )
+
+    db.add(new_patient)
+    db.commit()
+    db.refresh(new_patient)
+
+    return new_patient
+
+@app.put("/api/patients/{patient_id}", response_model=PatientResponse)
+def update_patient(
+    patient_id: int,
+    patient_data: PatientUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update an existing patient record"""
+
+    patient = db.query(Patient).filter(Patient.id == patient_id).first()
+    if not patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Patient with ID {patient_id} not found"
+        )
+
+    # Update only provided fields
+    update_data = patient_data.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(patient, field, value)
+
+    patient.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(patient)
+
+    return patient
+
+###
+# Delete patient
+### 
+@app.delete("/api/patients/{patient_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_patient(patient_id: int, db: Session = Depends(get_db)):
+    """Delete a patient record"""
+
+    patient = db.query(Patient).filter(Patient.id == patient_id).first()
+    if not patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Patient with ID {patient_id} not found"
+        )
+
+    db.delete(patient)
+    db.commit()
+
+    return None
