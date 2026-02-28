@@ -425,6 +425,10 @@
     margin-inline: auto;
   }
 
+  .mt-1 {
+    margin-top: calc(var(--spacing) * 1);
+  }
+
   .mt-2 {
     margin-top: calc(var(--spacing) * 2);
   }
@@ -469,6 +473,10 @@
     display: inline-flex;
   }
 
+  .h-2\.5 {
+    height: calc(var(--spacing) * 2.5);
+  }
+
   .h-10 {
     height: calc(var(--spacing) * 10);
   }
@@ -493,12 +501,20 @@
     width: 50%;
   }
 
+  .w-2\.5 {
+    width: calc(var(--spacing) * 2.5);
+  }
+
   .w-10 {
     width: calc(var(--spacing) * 10);
   }
 
   .w-12 {
     width: calc(var(--spacing) * 12);
+  }
+
+  .w-fit {
+    width: fit-content;
   }
 
   .w-full {
@@ -651,6 +667,10 @@
     .border-black\/\[\.08\] {
       border-color: color-mix(in oklab, var(--color-black) 8%, transparent);
     }
+  }
+
+  .border-blue-100 {
+    border-color: var(--color-blue-100);
   }
 
   .border-blue-200 {
@@ -815,12 +835,20 @@
     padding-block: calc(var(--spacing) * 3);
   }
 
+  .py-8 {
+    padding-block: calc(var(--spacing) * 8);
+  }
+
   .py-10 {
     padding-block: calc(var(--spacing) * 10);
   }
 
   .py-32 {
     padding-block: calc(var(--spacing) * 32);
+  }
+
+  .pb-5 {
+    padding-bottom: calc(var(--spacing) * 5);
   }
 
   .pb-6 {
@@ -894,6 +922,11 @@
     letter-spacing: .2em;
   }
 
+  .tracking-\[0\.18em\] {
+    --tw-tracking: .18em;
+    letter-spacing: .18em;
+  }
+
   .tracking-tight {
     --tw-tracking: var(--tracking-tight);
     letter-spacing: var(--tracking-tight);
@@ -941,6 +974,10 @@
 
   .text-green-800 {
     color: var(--color-green-800);
+  }
+
+  .text-red-500 {
+    color: var(--color-red-500);
   }
 
   .text-slate-500 {
@@ -1124,8 +1161,20 @@
   }
 
   @media (min-width: 40rem) {
+    .sm\:items-end {
+      align-items: flex-end;
+    }
+  }
+
+  @media (min-width: 40rem) {
     .sm\:items-start {
       align-items: flex-start;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .sm\:justify-between {
+      justify-content: space-between;
     }
   }
 

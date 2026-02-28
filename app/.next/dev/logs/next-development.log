@@ -85,3 +85,845 @@ You're importing a component that needs `useState`. This React Hook only works i
 [00:53:41.806] Server  LOG     ✓ Compiled in 27ms
 [00:58:18.228] Server  LOG     ✓ Compiled in 96ms
 [01:06:48.334] Server  LOG     ✓ Compiled in 18ms
+[01:13:49.013] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:15:01.493] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:15:10.256] Server  WARN    Error: Route "/patient/[id]" used `params.id`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+[01:36:12.249] Server  LOG     ✓ Compiled in 35ms
+[01:39:57.585] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.586] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.587] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.587] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.590] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.590] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.591] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.591] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.592] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.593] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.594] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.595] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.595] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.596] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.597] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.597] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.599] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.599] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.601] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.601] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.602] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.603] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.603] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.603] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.604] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.604] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.605] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.605] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.606] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.607] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.607] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.608] Server  ERROR   ⨯ ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:39:57.617] Server  LOG     ✓ Compiled in 11ms
+[01:39:58.104] Browser ERROR   ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:40:13.104] Browser ERROR   ./app/page.js:5:1
+Module not found: Can't resolve './api/patients'
+  3 | import Link from "next/link";
+  4 | import { useState } from "react";
+> 5 | import { patients } from "./api/patients";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function Home() {
+  8 |   const [searchTerm, setSearchTerm] = useState("");
+
+Import traces:
+  Client Component Browser:
+    ./app/page.js [Client Component Browser]
+    ./app/page.js [Server Component]
+
+  Client Component SSR:
+    ./app/page.js [Client Component SSR]
+    ./app/page.js [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:42:32.203] Server  WARN    Error: Route "/patient/[id]" used `params.id`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+[01:42:32.216] Server  ERROR   ⨯ TypeError: fetch failed
+[01:42:32.338] Browser ERROR   uncaughtError: TypeError: fetch failed
+[01:45:19.681] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:48:00.319] Server  LOG     ✓ Compiled in 26ms
+[01:48:01.104] Browser ERROR   uncaughtError: ReferenceError: isLoading is not defined
+[01:48:16.586] Server  ERROR   ⨯ ReferenceError: isLoading is not defined
+[01:48:16.672] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:48:16.788] Browser ERROR   uncaughtError: ReferenceError: isLoading is not defined
+[01:48:48.532] Server  ERROR   ⨯ ReferenceError: isLoading is not defined
+[01:48:48.592] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:48:48.702] Browser ERROR   uncaughtError: ReferenceError: isLoading is not defined
+[01:49:07.744] Server  ERROR   ⨯ ReferenceError: isLoading is not defined
+[01:49:07.798] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:49:07.908] Browser ERROR   uncaughtError: ReferenceError: isLoading is not defined
+[01:49:32.397] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:49:32.477] Server  LOG     ✓ Compiled in 17ms
+[01:49:32.648] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:52:32.493] Server  WARN    Error: Route "/patient/[id]" used `params.id`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+[01:52:32.508] Server  ERROR   ⨯ TypeError: fetch failed
+[01:52:32.627] Browser ERROR   uncaughtError: TypeError: fetch failed
+[01:55:05.834] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:55:05.865] Server  WARN    Error: Route "/patient/[id]" used `params.id`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+[01:55:05.912] Server  LOG     ✓ Compiled in 28ms
+[01:55:05.915] Server  ERROR   ⨯ TypeError: fetch failed
+[01:55:06.017] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:55:06.017] Browser ERROR   uncaughtError: TypeError: fetch failed
+[02:06:23.282] Server  WARN    Error: Route "/patient/[id]" used `params.id`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+[02:06:23.424] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

@@ -1,11 +1,27 @@
 import Link from "next/link";
-import { patients } from "../../data/patients";
 
-export default function PatientDetailPage({ params }) {
+function normalizePatient(patient) {
+  return {
+    id: patient.id,
+    mrn: patient.mrn,
+    name: patient.name,
+    age: patient.age,
+    gender: patient.gender,
+    lastVisit: patient.last_visit ?? "-",
+    nextAppointment: patient.next_appointment ?? "-",
+    status: patient.status,
+    phone: patient.phone,
+  };
+}
+
+export default async function PatientDetailPage({ params }) {
   const { id } = params;
-  const patient = patients.find((entry) => entry.id === Number(id));
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const response = await fetch(`${apiBaseUrl}/api/patients/${id}`, {
+    cache: "no-store",
+  });
 
-  if (!patient) {
+  if (!response.ok) {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-10">
         <div className="mx-auto max-w-3xl rounded-2xl border border-red-200 bg-white p-8 shadow-lg">
@@ -21,6 +37,8 @@ export default function PatientDetailPage({ params }) {
       </main>
     );
   }
+
+  const patient = normalizePatient(await response.json());
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10">
