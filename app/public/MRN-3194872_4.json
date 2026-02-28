@@ -1,0 +1,115 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2026-03-01T06:56:23.268476",
+    "audio_file": "/home/jordanm/Documents/Github/MistralHackathon2026/backend/storage/voice_data/MRN-3194872_4.wav",
+    "patient_id": "MRN-3194872",
+    "clinical_context": "depression and anxiety screening",
+    "pipeline_version": "1.0.0-kintsugi"
+  },
+  "kintsugi_scores": {
+    "depression": {
+      "severity_score": 1,
+      "severity_label": "Mild-moderate depression (PHQ-9 10-14)",
+      "raw_score": -0.6147952675819397
+    },
+    "anxiety": {
+      "severity_score": 1,
+      "severity_label": "Mild anxiety (GAD-7 5-9)",
+      "raw_score": -0.3735828399658203
+    }
+  },
+  "acoustic_parameters": {
+    "quality_control": {
+      "passed": true,
+      "warnings": [],
+      "speech_ratio_check": true,
+      "voiced_frames_check": true,
+      "voiced_frame_count": 1388,
+      "speech_ratio_value": 0.6228571428571428
+    },
+    "temporal": {
+      "pause_duration_mean_sec": 0.4120975609756098,
+      "pause_duration_median_sec": 0.192,
+      "pause_duration_p95_sec": 1.44,
+      "pause_duration_total_sec": 16.896000000000004,
+      "pause_rate_per_min": 54.91071428571429,
+      "speech_duration_sec": 27.903999999999993,
+      "speech_ratio": 0.6228571428571428,
+      "total_duration_sec": 44.8
+    },
+    "prosodic": {
+      "speech_rate_segments_per_sec": 0.9375000000000001,
+      "intensity_mean_rms": 0.06474653631448746,
+      "energy_variability_iqr": 0.0930727468803525,
+      "energy_variability_std": 0.0579875111579895,
+      "f0_mean_hz": 748.0878295898438,
+      "f0_median_hz": 269.7249450683594,
+      "f0_std_hz": 972.7386474609375,
+      "f0_iqr_hz": 339.33716201782227,
+      "f0_range_hz": 3831.338134765625,
+      "f0_min_hz": 152.8025665283203,
+      "f0_max_hz": 3984.140625,
+      "f0_p25_hz": 215.56809616088867,
+      "f0_p75_hz": 554.9052581787109,
+      "f0_slope": -0.15785175788362124,
+      "stress_frequency_per_sec": 1.1383928571428572,
+      "rhythm_regularity_std_sec": 0.48067979073858497
+    },
+    "spectral": {
+      "mfcc_1_mean": -256.6799011230469,
+      "mfcc_2_mean": 72.28753662109375,
+      "mfcc_3_mean": 10.324857711791992,
+      "mfcc_4_mean": 23.135196685791016,
+      "mfcc_5_mean": -0.490977942943573,
+      "mfcc_6_mean": 21.048873901367188,
+      "mfcc_7_mean": -11.413229942321777,
+      "mfcc_8_mean": -11.40207576751709,
+      "mfcc_9_mean": -1.3624008893966675,
+      "mfcc_10_mean": -1.2924262285232544,
+      "mfcc_11_mean": -12.60458755493164,
+      "mfcc_12_mean": 6.839073657989502,
+      "mfcc_13_mean": -4.49104642868042,
+      "spectral_centroid_mean_hz": 2045.2104682942545,
+      "spectral_centroid_std_hz": 1183.8633625228667,
+      "spectral_rolloff_mean_hz": 3984.3415417558886,
+      "spectral_bandwidth_mean_hz": 1768.491271453081,
+      "cpp": 0.025273996361789806,
+      "zero_crossing_rate_mean": 0.1569529716497145
+    },
+    "perturbation": {
+      "jitter_percent": 38.10983896255493,
+      "shimmer_percent": 16.079698503017426,
+      "reliable": true,
+      "note": "Perturbation features computed successfully."
+    },
+    "spectral_quality": {
+      "hnr_db": 1.373441368341446
+    }
+  },
+  "spectrogram": {
+    "path": null,
+    "duration": null
+  },
+  "clinical_analysis": {
+    "llm_interpretation": "### **Clinical Voice Analysis Report: Depression & Anxiety Screening**\n**Patient Profile:** Mild-moderate depression (PHQ-9 10\u201314) + mild anxiety (GAD-7 5\u20139)\n**Voice Data Context:** The acoustic parameters reveal subtle yet clinically significant disruptions in prosody, voice quality, and temporal dynamics, which align with\u2014though partially exceed\u2014expected patterns for mild-moderate depression and mild anxiety.\n\n---\n\n### **1. Interpretation of Kintsugi Scores**\n#### **Depression (PHQ-9 10\u201314: Mild-Moderate)**\n- **Severity:** Indicates functional impairment (e.g., sleep disruption, anhedonia, fatigue) but no severe suicidality or psychosis.\n- **Kintsugi Severity Score (1/2):** Suggests **moderate emotional lability** (e.g., mood reactivity, irritability) and **cognitive slowing** (consistent with PHQ-9 items like \"trouble concentrating\").\n- **Raw Score (-0.615):** Negative skew implies **depressive rumination** (e.g., repetitive negative self-talk, slower speech initiation).\n\n#### **Anxiety (GAD-7 5\u20139: Mild)**\n- **Severity:** Subclinical but clinically relevant (e.g., restlessness, irritability, somatic symptoms).\n- **Kintsugi Severity Score (1/3):** Suggests **mild physiological hyperarousal** (e.g., shallow breathing, muscle tension) and **cognitive intrusiveness** (e.g., worry loops).\n- **Raw Score (-0.374):** Less pronounced than depression but indicates **avoidant speech patterns** (e.g., hesitation, reduced fluency).\n\n**Correlation:** The depression score dominates, but anxiety\u2019s mild presence may exacerbate depressive symptoms (e.g., rumination \u2192 anxiety \u2192 rumination).\n\n---\n\n### **2. Acoustic Parameters: Contextualizing the Kintsugi Scores**\n#### **A. Prosodic Features (Emotional & Cognitive Load)**\n| **Parameter**       | **Value**       | **Clinical Interpretation**                                                                 | **Link to Kintsugi Scores**                                                                 |\n|----------------------|------------------|-------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|\n| **Pitch Mean (748.1 Hz)** | High (female: ~220 Hz; male: ~100 Hz) | Suggests **tension** (e.g., raised voice due to anxiety) or **masking depression** (e.g., overcompensating with loudness). | Aligns with GAD-7\u2019s **irritability** (higher pitch = emotional reactivity).                   |\n| **Pitch Variability (972.7 Hz)** | Extremely high (norm: ~50\u2013100 Hz) | **Emotional lability** (e.g., rapid pitch shifts = mood swings) or **depressive monotony** (if paired with low energy). | Supports **PHQ-9\u2019s \"mood swings\"** (severity score 1/2).                                       |\n| **Pitch Range (3831.3 Hz)** | Very wide (norm: ~500\u20131000 Hz) | Indicates **expressive instability** (e.g., anxiety-driven vocalization) or **depressive flatness with bursts of intensity**. | May reflect **anxiety\u2019s physiological arousal** (wide range = stress response).               |\n| **Loudness (0.0647 RMS)** | Low (norm: ~0.1\u20130.3) | **Affective flattening** (depression) or **avoidant speech** (anxiety).                     | Correlates with **PHQ-9\u2019s \"loss of interest\"** (lower energy = anhedonia).                     |\n| **Speech Rate (0.94 seg/sec)** | Slow (norm: ~1.5\u20132.5) | **Cognitive slowing** (depression) or **anxiety-induced hesitation**.                     | Supports **PHQ-9\u2019s \"difficulty concentrating\"** and GAD-7\u2019s **mental fatigue**.                 |\n\n#### **B. Temporal Features (Speech Disfluency & Pause Patterns)**\n| **Parameter**       | **Value**       | **Clinical Interpretation**                                                                 | **Link to Kintsugi Scores**                                                                 |\n|----------------------|------------------|-------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|\n| **Pause Duration (0.41s)** | Long (norm: ~0.2s) | **Depressive rumination** (prolonged pauses = internal processing) or **anxiety-induced freezing**. | Aligns with **PHQ-9\u2019s \"slowed thinking\"** and GAD-7\u2019s **",
+    "clinical_summary": "**Clinical Voice Screening Summary Report**\n**Patient ID:** [REDACTED] | **Date:** [INSERT DATE] | **Screening Tool:** Kintsugi Voice Analysis (PHQ-9, GAD-7)\n\n---\n### **Overview**\nThis report summarizes a voice-based screening for depressive and anxiety symptoms in a patient presenting with **mild-moderate depression (PHQ-9: 10\u201314)** and **mild anxiety (GAD-7: 5\u20139)**. Acoustic analysis revealed clinically significant disruptions in prosody, voice quality, and temporal dynamics, exceeding expected patterns for the reported severity. Findings align with emotional lability, cognitive slowing, and physiological hyperarousal, warranting further clinical correlation.\n\n---\n### **Key Findings**\n\n#### **1. Psychological Screening Results**\n- **Depression (PHQ-9):**\n  - Mild-moderate severity (score: 10\u201314), indicating functional impairment (e.g., sleep disruption, fatigue, anhedonia) but no severe suicidality.\n  - **Kintsugi Severity Score (1/2):** Moderate emotional lability (mood reactivity, irritability) and cognitive slowing.\n  - **Acoustic Correlates:**\n    - Low loudness (0.0647 RMS) \u2192 affective flattening/avoidant speech.\n    - Slowed speech rate (0.94 seg/sec) \u2192 cognitive slowing.\n    - Prolonged pauses (0.41s) \u2192 depressive rumination.\n\n- **Anxiety (GAD-7):**\n  - Mild severity (score: 5\u20139), with subclinical restlessness, irritability, and somatic symptoms.\n  - **Kintsugi Severity Score (1/3):** Mild physiological hyperarousal (e.g., muscle tension) and cognitive intrusiveness.\n  - **Acoustic Correlates:**\n    - Elevated pitch mean (748.1 Hz) \u2192 emotional tension/irritability.\n    - High pitch variability (972.7 Hz) \u2192 expressive instability.\n    - Wide pitch range (3831.3 Hz) \u2192 stress-driven vocalization.\n\n#### **2. Acoustic Parameters Summary**\n| **Domain**          | **Key Abnormalities**                                                                 | **Likely Mechanism**                          |\n|---------------------|--------------------------------------------------------------------------------------|-----------------------------------------------|\n| **Prosody**         | High pitch variability, wide range, low loudness                                   | Emotional lability (depression/anxiety)      |\n| **Temporal**        | Slow speech rate, prolonged pauses                                                 | Cognitive slowing (depression)               |\n| **Voice Quality**   | Tension (raised pitch), monotony with bursts                                       | Avoidance (anxiety) + affective flattening    |\n\n---\n### **Clinical Recommendations**\n1. **Confirm Diagnostic Correlation:**\n   - Validate findings with a **comprehensive psychiatric evaluation** (e.g., clinical interview, collateral history).\n   - Rule out **differential diagnoses** (e.g., bipolar disorder, PTSD, thyroid dysfunction) given acoustic-prosodic overlap.\n\n2. **Targeted Interventions:**\n   - **Depression:**\n     - Cognitive Behavioral Therapy (CBT) for **rumination** and **cognitive slowing** (e.g., structured thought records, pacing exercises).\n     - **Voice therapy** (if indicated): Focus on **loudness modulation** and **prosodic variability** to reduce affective flattening.\n   - **Anxiety:**\n     - **Physiological regulation:** Breathing exercises (e.g., diaphragmatic breathing) to reduce pitch variability/hyperarousal.\n     - **Exposure therapy** for avoidant speech patterns (e.g., gradual fluency drills).\n\n3. **Monitoring:**\n   - Re-screen voice parameters in **4\u20136 weeks** post-intervention to assess response (e.g., changes in pitch range, pause duration).\n   - Consider **wearable biofeedback devices** (e.g., heart rate variability tracking) for anxiety-related physiological markers.\n\n4. **Collaborative Care:**\n   - Refer to **speech-language pathology (SLP)** if:\n     - Persistent **prosodic monotony** or **dysfluency** impacts communication.\n     - Patient reports **voice strain** (e.g., from anxiety-induced tension).\n\n---\n### **Disclaimer**\nThis report is a **screening tool** and does not replace a **clinical diagnosis** by a licensed psychiatrist or psychologist. Voice analysis provides **supportive evidence** but lacks specificity for complex psychiatric conditions. **Professional evaluation** is required for accurate diagnosis, treatment planning, and ongoing management. Results should be discussed with the patient\u2019s primary care provider or mental health specialist.\n\n---\n**Generated by:** [Your Institution/Tool Name]\n**",
+    "model_used": "ministral-8b-latest"
+  },
+  "parameters_summary": {
+    "pitch_mean_hz": 748.0878295898438,
+    "pitch_variability_hz": 972.7386474609375,
+    "pitch_range_hz": 3831.338134765625,
+    "loudness_rms": 0.06474653631448746,
+    "energy_variability_iqr": 0.0930727468803525,
+    "speech_rate_segments_per_sec": 0.9375000000000001,
+    "pause_duration_mean_sec": 0.4120975609756098,
+    "pause_rate_per_min": 54.91071428571429,
+    "speech_ratio": 0.6228571428571428,
+    "total_duration_sec": 44.8,
+    "voice_brightness_hz": 2045.2104682942545,
+    "cpp": 0.025273996361789806,
+    "jitter_percent": 38.10983896255493,
+    "shimmer_percent": 16.079698503017426,
+    "hnr_db": 1.373441368341446
+  }
+}

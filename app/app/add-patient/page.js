@@ -1,9 +1,62 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function AddPatientPage() {
   const [mrn, setMrn] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const router = useRouter();
+
+  async function handleSubmit() {
+    const trimmedMrn = mrn.trim();
+
+    if (!trimmedMrn) {
+      setError("Enter an MRN number first.");
+      setSuccessMessage("");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setError("");
+      setSuccessMessage("");
+
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const response = await fetch(`${apiBaseUrl}/api/patients`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mrn: trimmedMrn,
+          name: `Patient ${trimmedMrn}`,
+          age: 35,
+          gender: "F",
+          last_visit: null,
+          next_appointment: "-",
+          status: "Pending",
+          risk: "Undetermined",
+          phone: "000-000-0000",
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(payload?.detail || "Unable to add patient.");
+      }
+
+      setSuccessMessage(`Patient ${trimmedMrn} added.`);
+      router.push(`/?added=${encodeURIComponent(trimmedMrn)}`);
+    } catch (submitError) {
+      setError(submitError.message || "Unable to add patient.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#edf7fb_0%,#eef7f4_100%)] px-6 py-10">
@@ -33,12 +86,26 @@ export default function AddPatientPage() {
           />
         </div>
 
+        {error && (
+          <p className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+            {error}
+          </p>
+        )}
+
+        {successMessage && (
+          <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+            {successMessage}
+          </p>
+        )}
+
         <div className="mt-8 flex justify-end">
           <button
             type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
             className="inline-flex items-center justify-center rounded-2xl bg-blue-500 px-6 py-3 text-base font-semibold text-white shadow-[0_14px_28px_rgba(37,99,235,0.18)] transition hover:bg-blue-600"
           >
-            Submit
+            {isSubmitting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>

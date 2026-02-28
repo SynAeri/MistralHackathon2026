@@ -1,0 +1,115 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2026-03-01T06:55:47.463971",
+    "audio_file": "/home/jordanm/Documents/Github/MistralHackathon2026/backend/storage/voice_data/MRN-3194872_3.wav",
+    "patient_id": "MRN-3194872",
+    "clinical_context": "depression and anxiety screening",
+    "pipeline_version": "1.0.0-kintsugi"
+  },
+  "kintsugi_scores": {
+    "depression": {
+      "severity_score": 0,
+      "severity_label": "No depression (PHQ-9 \u2264 9)",
+      "raw_score": -1.5245054960250854
+    },
+    "anxiety": {
+      "severity_score": 0,
+      "severity_label": "No anxiety (GAD-7 \u2264 4)",
+      "raw_score": -1.282246470451355
+    }
+  },
+  "acoustic_parameters": {
+    "quality_control": {
+      "passed": true,
+      "warnings": [],
+      "speech_ratio_check": true,
+      "voiced_frames_check": true,
+      "voiced_frame_count": 808,
+      "speech_ratio_value": 0.8182926829268292
+    },
+    "temporal": {
+      "pause_duration_mean_sec": 0.2804705882352941,
+      "pause_duration_median_sec": 0.32,
+      "pause_duration_p95_sec": 0.42239999999999994,
+      "pause_duration_total_sec": 4.768,
+      "pause_rate_per_min": 38.8719512195122,
+      "speech_duration_sec": 21.471999999999998,
+      "speech_ratio": 0.8182926829268292,
+      "total_duration_sec": 26.24
+    },
+    "prosodic": {
+      "speech_rate_segments_per_sec": 0.6859756097560976,
+      "intensity_mean_rms": 0.1363508403301239,
+      "energy_variability_iqr": 0.1585533432662487,
+      "energy_variability_std": 0.09710430353879929,
+      "f0_mean_hz": 496.19952392578125,
+      "f0_median_hz": 301.888427734375,
+      "f0_std_hz": 658.26171875,
+      "f0_iqr_hz": 221.82397079467773,
+      "f0_range_hz": 3839.783203125,
+      "f0_min_hz": 152.5386199951172,
+      "f0_max_hz": 3992.32177734375,
+      "f0_p25_hz": 195.98962783813477,
+      "f0_p75_hz": 417.8135986328125,
+      "f0_slope": 0.039396301794990624,
+      "stress_frequency_per_sec": 1.486280487804878,
+      "rhythm_regularity_std_sec": 0.7276933284336978
+    },
+    "spectral": {
+      "mfcc_1_mean": -179.12782287597656,
+      "mfcc_2_mean": 72.75565338134766,
+      "mfcc_3_mean": 13.707605361938477,
+      "mfcc_4_mean": 26.621562957763672,
+      "mfcc_5_mean": -8.151930809020996,
+      "mfcc_6_mean": 3.5413832664489746,
+      "mfcc_7_mean": -20.365503311157227,
+      "mfcc_8_mean": -15.335222244262695,
+      "mfcc_9_mean": -2.3306238651275635,
+      "mfcc_10_mean": -10.141876220703125,
+      "mfcc_11_mean": -13.09295654296875,
+      "mfcc_12_mean": 2.363724708557129,
+      "mfcc_13_mean": -7.4765143394470215,
+      "spectral_centroid_mean_hz": 2054.6147548591866,
+      "spectral_centroid_std_hz": 1307.080660942349,
+      "spectral_rolloff_mean_hz": 3861.8491169305726,
+      "spectral_bandwidth_mean_hz": 1726.5344993072295,
+      "cpp": 0.023053364044774215,
+      "zero_crossing_rate_mean": 0.16446394926157126
+    },
+    "perturbation": {
+      "jitter_percent": 41.81865453720093,
+      "shimmer_percent": 14.514167606830597,
+      "reliable": true,
+      "note": "Perturbation features computed successfully."
+    },
+    "spectral_quality": {
+      "hnr_db": 1.7931857705116272
+    }
+  },
+  "spectrogram": {
+    "path": null,
+    "duration": null
+  },
+  "clinical_analysis": {
+    "llm_interpretation": "### **Clinical Analysis of Voice Data in Relation to Depression and Anxiety Screening**\n\n#### **1. Interpretation of Kintsugi Depression/Anxiety Scores**\nThe **Kintsugi Depression and Anxiety Model** results indicate:\n- **No depression (PHQ-9 \u2264 9, Severity Score: 0/2, Raw Score: -1.525)**\n- **No anxiety (GAD-7 \u2264 4, Severity Score: 0/3, Raw Score: -1.282)**\n\nThese scores suggest **no clinically significant depressive or anxious symptoms** based on self-reported measures. However, voice analysis provides an **objective, physiological complement** to these subjective assessments, which may reveal **subtle or emerging psychological distress** not captured by questionnaires alone.\n\n---\n\n### **2. Analysis of Acoustic Parameters in Relation to Scores**\n\n#### **A. Prosodic Features (Emotional Expression & Speech Style)**\n- **Pitch Mean (496.2 Hz)** \u2013 Slightly elevated (average female pitch is ~220 Hz, male ~100 Hz). While not diagnostic, **high pitch variability (658.3 Hz)** suggests **emotional lability**, which may reflect **subtle anxiety or depressive rumination** even if not clinically severe.\n- **Pitch Range (3839.8 Hz)** \u2013 Extremely high, indicating **strong emotional expressiveness**, which could correlate with **hypervigilance or emotional reactivity** (common in anxiety).\n- **Loudness (0.1364 RMS)** \u2013 Low RMS suggests **soft speech**, which may indicate **social withdrawal, fatigue, or low motivation**\u2014potential red flags for **mild depressive tendencies**.\n- **Energy Variability (0.1586 IQR)** \u2013 Low variability suggests **monotone speech**, which is associated with **depression and apathy**.\n- **Speech Rate (0.69 segments/sec)** \u2013 **Slower than average (typically ~1.5\u20132.5 seg/sec)**, which may reflect **psychomotor slowing** (a depressive symptom) or **cognitive load** (anxiety-related rumination).\n\n#### **B. Temporal Features (Speech Flow & Disfluency)**\n- **Pause Duration (0.28 sec) & Pause Rate (38.9/min)** \u2013 **Slightly elevated pauses** (normal range: ~20\u201330/min) may indicate **hesitation, self-monitoring, or cognitive overload**\u2014common in **mild anxiety or depressive rumination**.\n- **Speech Ratio (81.83%)** \u2013 High speech ratio suggests **minimal pauses**, which could reflect **pressured speech** (anxiety) or **reduced self-reflection** (depression).\n- **Total Duration (26.2 sec)** \u2013 Short duration may indicate **reduced verbal output**, which can be seen in **depression or social withdrawal**.\n\n#### **C. Spectral Features (Voice Quality & Harmonicity)**\n- **Voice Brightness (2054.6 Hz)** \u2013 High brightness suggests **nasality or breathiness**, which may correlate with **emotional distress or vocal fatigue** (common in anxiety).\n- **CPP (0.02)** \u2013 **Very low cepstral peak prominence** indicates **poor harmonic structure**, which is associated with **vocal strain, fatigue, or emotional suppression** (seen in depression).\n- **HNR (1.79 dB)** \u2013 **Severely degraded harmonics-to-noise ratio** (normal: >15 dB), suggesting **significant breathiness or vocal instability**, which is **highly indicative of emotional distress**, even if not clinically severe.\n\n#### **D. Perturbation Features (Voice Instability)**\n- **Jitter (41.819%)** \u2013 **Extremely high** (normal: <1%), indicating **severe vocal instability**, which is **strongly correlated with anxiety and depression** (even in subclinical cases).\n- **Shimmer (14.514%)** \u2013 **Elevated** (normal: <5%), further suggesting **emotional lability and vocal fatigue**.\n\n---\n\n### **3. Concerning Patterns in Speech Characteristics**\nDespite **normal Kintsugi scores**, the following **acoustic red flags** suggest **subclinical or emerging psychological distress**:\n1. **Extreme vocal instability (high jitter/shimmer)** \u2013 Strongest indicator of **emotional dysregulation**, often preceding clinical anxiety/depression.\n2. **Low HNR (1.79 dB)** \u2013 **Vocal degradation** is a **biomarker of stress**, even in non-clinical cases.\n3. **High pitch variability & range** \u2013 Suggests **emotional reactivity**, which may indicate **subtle",
+    "clinical_summary": "**Clinical Summary Report: Voice Screening Analysis**\n\n**Patient Overview:**\nThis report summarizes the objective voice analysis of [Patient Name], conducted to assess for potential subclinical psychological distress (depression/anxiety) via acoustic biomarkers. While self-reported screening scores (Kintsugi Depression/Anxiety Model) indicate **no clinically significant symptoms** (PHQ-9 \u2264 9, GAD-7 \u2264 4), voice analysis revealed **multiple physiological markers of emotional dysregulation** warranting further consideration.\n\n---\n\n### **Key Findings**\n**Subjective Screening Results:**\n- **No depression** (PHQ-9: Severity Score 0/2, Raw Score \u20131.525)\n- **No anxiety** (GAD-7: Severity Score 0/3, Raw Score \u20131.282)\n\n**Objective Voice Biomarkers (Acoustic Analysis):**\n- **Vocal Instability:**\n  - **Jitter (41.819%)** and **shimmer (14.514%)** (both **severely elevated** beyond normal ranges), suggesting **emotional lability** and **vocal fatigue**\u2014common in subclinical anxiety/depression.\n  - **Harmonic-to-Noise Ratio (HNR: 1.79 dB)** (**severely degraded**; normal >15 dB), indicating **vocal strain or suppression**.\n- **Prosodic & Temporal Features:**\n  - **High pitch variability (658.3 Hz)** and **expanded pitch range (3839.8 Hz)**, reflecting **emotional reactivity**.\n  - **Slower speech rate (0.69 seg/sec)** and **low loudness (0.1364 RMS)**, consistent with **psychomotor slowing** or **social withdrawal**.\n  - **Increased pause rate (38.9/min)** and **low energy variability**, suggesting **hesitation or cognitive load**.\n- **Spectral Features:**\n  - **Voice brightness (2054.6 Hz)** and **nasality/breathiness** may indicate **stress-related vocal changes**.\n\n---\n### **Clinical Recommendations**\n1. **Follow-Up Psychological Screening:**\n   - Given the **discrepancy between subjective and objective findings**, consider **reassessment with validated clinical tools** (e.g., full PHQ-9/GAD-7, clinical interview) to evaluate for **subclinical symptoms** or **emerging distress**.\n   - Explore **contextual factors** (e.g., life stressors, sleep, fatigue) contributing to vocal biomarkers.\n\n2. **Voice & Emotional Health Evaluation:**\n   - Referral to **speech-language pathology (SLP)** or **psychiatry/psychology** if:\n     - Patient reports **vocal fatigue, tension, or changes in speech patterns**.\n     - **Persistent emotional dysregulation** is suspected despite normal screening.\n   - Educate patient on **stress-reduction techniques** (e.g., diaphragmatic breathing, hydration) to mitigate vocal strain.\n\n3. **Monitoring:**\n   - **Repeat voice screening** in 3\u20136 months if **baseline distress is suspected** to track progression.\n   - If **symptoms escalate**, prioritize **mental health evaluation**.\n\n---\n### **Disclaimer**\nThis report provides **objective voice analysis as a complementary screening tool** and **does not replace clinical diagnosis**. Findings should be interpreted in conjunction with **patient history, subjective reports, and professional evaluation**. For definitive assessment, consult a **licensed psychiatrist, psychologist, or primary care provider**.\n\n**Next Steps:**\n- [ ] Schedule follow-up psychological screening if indicated.\n- [ ] Refer to SLP/mental health if vocal or emotional symptoms persist.\n- [ ] Document patient awareness of **potential subclinical distress** and encourage proactive care.",
+    "model_used": "ministral-8b-latest"
+  },
+  "parameters_summary": {
+    "pitch_mean_hz": 496.19952392578125,
+    "pitch_variability_hz": 658.26171875,
+    "pitch_range_hz": 3839.783203125,
+    "loudness_rms": 0.1363508403301239,
+    "energy_variability_iqr": 0.1585533432662487,
+    "speech_rate_segments_per_sec": 0.6859756097560976,
+    "pause_duration_mean_sec": 0.2804705882352941,
+    "pause_rate_per_min": 38.8719512195122,
+    "speech_ratio": 0.8182926829268292,
+    "total_duration_sec": 26.24,
+    "voice_brightness_hz": 2054.6147548591866,
+    "cpp": 0.023053364044774215,
+    "jitter_percent": 41.81865453720093,
+    "shimmer_percent": 14.514167606830597,
+    "hnr_db": 1.7931857705116272
+  }
+}

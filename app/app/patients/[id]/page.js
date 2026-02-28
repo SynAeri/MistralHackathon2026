@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { readdir } from "fs/promises";
+import { readFile, readdir } from "fs/promises";
 import path from "path";
 import AudioArchive from "./AudioArchive";
 import SendConfirmationButton from "./SendConfirmationButton";
@@ -76,6 +76,353 @@ function buildFallbackRecordingDate(itemIndex) {
     day: "numeric",
     year: "numeric",
   }).format(baseDate);
+}
+
+function toMetricNumber(value) {
+  const parsed = Number(value);
+
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatMetricValue(value, decimals = 1) {
+  if (!Number.isFinite(value)) {
+    return "0";
+  }
+
+  const formatted = value.toFixed(decimals);
+
+  return formatted.endsWith(".0") ? formatted.slice(0, -2) : formatted;
+}
+
+function formatMetricDelta(current, baseline, unit = "", decimals = 1) {
+  if (!Number.isFinite(current) || !Number.isFinite(baseline)) {
+    return "No baseline yet";
+  }
+
+  const delta = current - baseline;
+  if (Math.abs(delta) < 0.0001) {
+    return "Stable";
+  }
+
+  const sign = delta > 0 ? "+" : "-";
+  const value = formatMetricValue(Math.abs(delta), decimals);
+
+  return `${sign}${value}${unit} vs baseline`;
+}
+
+function buildNumericTicks(min, max, tickCount = 4) {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    return ["0", "1", "2", "3"];
+  }
+
+  if (Math.abs(max - min) < 0.0001) {
+    return Array.from({ length: tickCount }, (_, index) => formatMetricValue(min + index, 0));
+  }
+
+  const step = (max - min) / (tickCount - 1);
+
+  return Array.from({ length: tickCount }, (_, index) =>
+    formatMetricValue(min + step * index, max < 10 ? 1 : 0)
+  );
+}
+
+function normalizeSentenceSpacing(text) {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function stripMarkdownFormatting(text) {
+  return text
+    .replace(/#+\s*/g, "")
+    .replace(/\*\*/g, "")
+    .replace(/`/g, "")
+    .replace(/\[[^\]]+\]\([^)]+\)/g, "")
+    .replace(/^\s*[-*]\s+/gm, "");
+}
+
+function extractReadableTranscript(snapshot) {
+  const sourceText =
+    snapshot?.clinicalSummary ??
+    snapshot?.llmInterpretation ??
+    "";
+
+  if (!sourceText) {
+    return null;
+  }
+
+  const cleaned = normalizeSentenceSpacing(stripMarkdownFormatting(sourceText));
+  const sentences = cleaned
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(
+      (sentence) =>
+        sentence.length > 35 &&
+        !/^clinical voice/i.test(sentence) &&
+        !/^patient:/i.test(sentence) &&
+        !/^date:/i.test(sentence) &&
+        !/^purpose:/i.test(sentence)
+    );
+
+  if (sentences.length === 0) {
+    return cleaned.slice(0, 420);
+  }
+
+  return sentences.slice(0, 4).join(" ");
+}
+
+function buildDerivedAlerts(snapshots, fallbackAlerts = []) {
+  if (snapshots.length === 0) {
+    return fallbackAlerts;
+  }
+
+  const first = snapshots[0];
+  const latest = snapshots[snapshots.length - 1];
+  const derivedAlerts = [];
+
+  if (
+    Number.isFinite(first.speechDurationSec) &&
+    Number.isFinite(latest.speechDurationSec)
+  ) {
+    const durationDelta = latest.speechDurationSec - first.speechDurationSec;
+    if (durationDelta >= 4) {
+      derivedAlerts.push(
+        `Speech duration increased by ${formatMetricValue(durationDelta, 1)}s from baseline`
+      );
+    } else if (durationDelta <= -4) {
+      derivedAlerts.push(
+        `Speech duration dropped by ${formatMetricValue(Math.abs(durationDelta), 1)}s from baseline`
+      );
+    }
+  }
+
+  if (Number.isFinite(latest.pauseRatePerMin) && latest.pauseRatePerMin >= 45) {
+    derivedAlerts.push(
+      `Pause rate is elevated at ${formatMetricValue(latest.pauseRatePerMin, 0)} pauses/min`
+    );
+  }
+
+  if (
+    Number.isFinite(latest.pitchVariabilityHz) &&
+    latest.pitchVariabilityHz >= 700
+  ) {
+    derivedAlerts.push(
+      `Pitch variability remains high at ${formatMetricValue(latest.pitchVariabilityHz, 0)} Hz`
+    );
+  }
+
+  if (Number.isFinite(latest.jitterPercent) && latest.jitterPercent >= 20) {
+    derivedAlerts.push(
+      `Voice stability is reduced with jitter at ${formatMetricValue(latest.jitterPercent, 1)}%`
+    );
+  }
+
+  if (Number.isFinite(latest.hnrDb) && latest.hnrDb <= 3) {
+    derivedAlerts.push(
+      `Low harmonic-to-noise ratio suggests strained or breathy phonation`
+    );
+  }
+
+  const uniqueAlerts = [...new Set(derivedAlerts)];
+
+  if (uniqueAlerts.length > 0) {
+    return uniqueAlerts;
+  }
+
+  return fallbackAlerts;
+}
+
+function getMetricTone(current, baseline, isHigherRisk = true) {
+  if (!Number.isFinite(current) || !Number.isFinite(baseline) || baseline === 0) {
+    return {
+      tone: "amber",
+      badge: "Monitor",
+    };
+  }
+
+  const changeRatio = isHigherRisk
+    ? (current - baseline) / Math.abs(baseline)
+    : (baseline - current) / Math.abs(baseline);
+
+  if (changeRatio >= 0.15) {
+    return {
+      tone: "red",
+      badge: "Alert",
+    };
+  }
+
+  if (changeRatio >= 0.05) {
+    return {
+      tone: "amber",
+      badge: "Monitor",
+    };
+  }
+
+  return {
+    tone: "green",
+    badge: "Within normal range",
+  };
+}
+
+function extractJsonDayIndex(fileName, mrn) {
+  const match = fileName.match(new RegExp(`^${mrn}_(\\d+)\\.json$`));
+
+  return match ? Number(match[1]) : null;
+}
+
+async function loadVoiceBiomarkerSnapshots(mrn) {
+  if (!mrn) {
+    return [];
+  }
+
+  try {
+    const entries = await readdir(PUBLIC_AUDIO_DIR, { withFileTypes: true });
+    const matchingFiles = entries
+      .filter(
+        (entry) =>
+          entry.isFile() &&
+          entry.name.startsWith(`${mrn}_`) &&
+          entry.name.endsWith(".json")
+      )
+      .map((entry) => ({
+        fileName: entry.name,
+        dayIndex: extractJsonDayIndex(entry.name, mrn),
+      }))
+      .filter((entry) => Number.isFinite(entry.dayIndex))
+      .sort((left, right) => left.dayIndex - right.dayIndex);
+
+    const snapshots = await Promise.all(
+      matchingFiles.map(async ({ fileName, dayIndex }) => {
+        const filePath = path.join(PUBLIC_AUDIO_DIR, fileName);
+        const rawContent = await readFile(filePath, "utf8");
+        const parsed = JSON.parse(rawContent);
+
+        return {
+          dayIndex,
+          speechDurationSec: toMetricNumber(
+            parsed?.acoustic_parameters?.temporal?.speech_duration_sec
+          ),
+          pauseDurationSec: toMetricNumber(
+            parsed?.acoustic_parameters?.temporal?.pause_duration_mean_sec
+          ),
+          speechRate: toMetricNumber(
+            parsed?.acoustic_parameters?.prosodic?.speech_rate_segments_per_sec
+          ),
+          pitchVariabilityHz: toMetricNumber(
+            parsed?.acoustic_parameters?.prosodic?.f0_std_hz
+          ),
+          pauseRatePerMin: toMetricNumber(
+            parsed?.acoustic_parameters?.temporal?.pause_rate_per_min
+          ),
+          jitterPercent: toMetricNumber(
+            parsed?.acoustic_parameters?.perturbation?.jitter_percent
+          ),
+          hnrDb: toMetricNumber(
+            parsed?.acoustic_parameters?.spectral_quality?.hnr_db
+          ),
+          clinicalSummary:
+            parsed?.clinical_analysis?.clinical_summary ?? null,
+          llmInterpretation:
+            parsed?.clinical_analysis?.llm_interpretation ?? null,
+        };
+      })
+    );
+
+    return snapshots.filter(
+      (snapshot) =>
+        snapshot.speechDurationSec !== null ||
+        snapshot.pauseDurationSec !== null ||
+        snapshot.speechRate !== null ||
+        snapshot.pitchVariabilityHz !== null
+    );
+  } catch {
+    return [];
+  }
+}
+
+function buildBiomarkerItem({
+  title,
+  unit,
+  yLabel,
+  snapshots,
+  valueAccessor,
+  isHigherRisk = true,
+  decimals = 1,
+  minFloor = 0,
+}) {
+  const values = snapshots.map(valueAccessor).filter((value) => Number.isFinite(value));
+
+  if (values.length === 0) {
+    return null;
+  }
+
+  const baseline = values[0];
+  const latest = values[values.length - 1];
+  const { tone, badge } = getMetricTone(latest, baseline, isHigherRisk);
+  const rawMin = Math.min(...values);
+  const rawMax = Math.max(...values);
+  const paddedMin = Math.max(minFloor, rawMin - (rawMax - rawMin || rawMax || 1) * 0.1);
+  const paddedMax = rawMax + (rawMax - rawMin || rawMax || 1) * 0.1;
+  const xTicks = snapshots.map((snapshot) => `Day ${snapshot.dayIndex}`);
+
+  return {
+    title,
+    value: formatMetricValue(latest, decimals),
+    unit,
+    delta: formatMetricDelta(latest, baseline, unit ? ` ${unit}` : "", decimals),
+    badge,
+    tone,
+    yLabel,
+    yTicks: buildNumericTicks(paddedMin, paddedMax, 4),
+    xTicks,
+    baseline,
+    min: paddedMin,
+    max: paddedMax,
+    points: values.length === 1 ? [values[0], values[0]] : values,
+  };
+}
+
+function buildBiomarkersFromSnapshots(snapshots) {
+  if (snapshots.length === 0) {
+    return null;
+  }
+
+  return [
+    buildBiomarkerItem({
+      title: "Speech Duration",
+      unit: "s",
+      yLabel: "Seconds",
+      snapshots,
+      valueAccessor: (snapshot) => snapshot.speechDurationSec,
+      decimals: 1,
+      minFloor: 0,
+    }),
+    buildBiomarkerItem({
+      title: "Pause Duration",
+      unit: "s",
+      yLabel: "Seconds",
+      snapshots,
+      valueAccessor: (snapshot) => snapshot.pauseDurationSec,
+      decimals: 2,
+      minFloor: 0,
+    }),
+    buildBiomarkerItem({
+      title: "Speech Rate",
+      unit: "seg/s",
+      yLabel: "Rate",
+      snapshots,
+      valueAccessor: (snapshot) => snapshot.speechRate,
+      decimals: 2,
+      minFloor: 0,
+    }),
+    buildBiomarkerItem({
+      title: "Pitch Variability",
+      unit: "Hz",
+      yLabel: "Hz",
+      snapshots,
+      valueAccessor: (snapshot) => snapshot.pitchVariabilityHz,
+      decimals: 0,
+      minFloor: 0,
+    }),
+  ].filter(Boolean);
 }
 
 async function getLocalAudioSources() {
@@ -221,24 +568,27 @@ function normalizeAllAudioPayload(payload, fallbackAudioSources) {
       return fallbackAudioSources.map((audioSrc, itemIndex) => buildLocalAudioItem(audioSrc, itemIndex));
     }
 
-    return Array.from({ length: 9 }, (_, itemIndex) => normalizeAudioItem(null, itemIndex, []));
+    return [];
   }
 
   return list.map((item, itemIndex) => normalizeAudioItem(item, itemIndex, fallbackAudioSources));
 }
 
-function buildUiModel(patient, diagnosisData, engagementData, latestAudio, recordings) {
+function buildUiModel(
+  patient,
+  diagnosisData,
+  engagementData,
+  latestAudio,
+  recordings,
+  biomarkers,
+  transcript,
+  alerts
+) {
   const assignedClinicians = [
     "Dr. William Carter",
     "Dr. Maya Singh",
     "Dr. Elena Brooks",
     "Dr. Daniel Kim", 
-  ];
-  const transcriptMap = [
-    "I barely made it through the call today. Everything feels heavy, work keeps piling up, and I have been skipping medication some days because I forget or because it just feels pointless.",
-    "My sleep has been inconsistent this week. I keep waking up early, missing routine check-ins, and I do not feel like I have fully recovered from the last episode.",
-    "I am keeping up with some of the plan, but the last few days have been rough. I canceled one appointment, avoided calls, and felt more withdrawn than usual.",
-    "The good days feel shorter right now. I can still manage basic tasks, but I notice less energy, slower speech, and less motivation to respond to people.",
   ];
   const index = patient.id % assignedClinicians.length;
   const monitorStatusMap = {
@@ -269,14 +619,16 @@ function buildUiModel(patient, diagnosisData, engagementData, latestAudio, recor
     requestedTime: "2:30 PM",
     latestCheckInDate: "Apr 22, 2024, 4:05PM",
     latestAudio,
-    transcript: transcriptMap[index],
+    transcript:
+      transcript ??
+      "Clinical voice summary is not available yet for this patient.",
     recordings,
     completion: Math.round(engagementData.callPercentage),
     callLabel: `${engagementData.completedCalls}/${engagementData.totalCalls} calls`,
     missedStreak: engagementData.callsUnpicked,
     symptomDelta: symptomDeltaMap[diagnosisData.status] ?? "No baseline yet",
-    alerts: diagnosisData.alerts,
-    biomarkers: [
+    alerts: alerts,
+    biomarkers: biomarkers ?? [
       {
         title: "Speech Duration",
         value: "2.3",
@@ -433,7 +785,21 @@ export default async function PatientDetailPage({ params }) {
     latestAudio,
     normalizeAllAudioPayload(allAudioPayload, localAudioSources)
   );
-  const ui = buildUiModel(patient, diagnosisData, engagementData, latestAudio, recordings);
+  const biomarkerSnapshots = await loadVoiceBiomarkerSnapshots(patient.mrn);
+  const dynamicBiomarkers = buildBiomarkersFromSnapshots(biomarkerSnapshots);
+  const latestSnapshot = biomarkerSnapshots[biomarkerSnapshots.length - 1] ?? null;
+  const dynamicTranscript = extractReadableTranscript(latestSnapshot);
+  const dynamicAlerts = buildDerivedAlerts(biomarkerSnapshots, diagnosisData.alerts);
+  const ui = buildUiModel(
+    patient,
+    diagnosisData,
+    engagementData,
+    latestAudio,
+    recordings,
+    dynamicBiomarkers,
+    dynamicTranscript,
+    dynamicAlerts
+  );
   const statusBadgeStyles = {
     red: "border-rose-400 bg-rose-50 text-rose-700",
     amber: "border-amber-400 bg-amber-50 text-amber-700",
@@ -519,7 +885,7 @@ export default async function PatientDetailPage({ params }) {
                   </div>
                 </div>
 
-                <div className="rounded-[1.6rem] border border-sky-200 bg-sky-50/80 p-6">
+                <div className="self-start rounded-[1.6rem] border border-sky-200 bg-sky-50/80 p-6">
                   <div className="space-y-8">
                     <InfoRow label="Requested Appointment Date" value={ui.requestedDate} />
                     <InfoRow label="Requested Time" value={ui.requestedTime} />
