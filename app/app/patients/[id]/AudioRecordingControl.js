@@ -8,14 +8,31 @@ export default function AudioRecordingControl({
   audioSrc = DEMO_AUDIO_SRC,
   className = "",
   compact = false,
+  onDurationChange,
 }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [durationSeconds, setDurationSeconds] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
+  const instanceIdRef = useRef(`audio-${Math.random().toString(36).slice(2)}`);
 
   useEffect(() => {
+    function handleExternalPlay(event) {
+      const audio = audioRef.current;
+      if (!audio || event.detail?.id === instanceIdRef.current) {
+        return;
+      }
+
+      if (!audio.paused) {
+        audio.pause();
+        setIsPlaying(false);
+      }
+    }
+
+    window.addEventListener("patient-audio-play", handleExternalPlay);
+
     return () => {
+      window.removeEventListener("patient-audio-play", handleExternalPlay);
       if (audioRef.current) {
         audioRef.current.pause();
       }
@@ -37,6 +54,11 @@ export default function AudioRecordingControl({
     try {
       await audio.play();
       setIsPlaying(true);
+      window.dispatchEvent(
+        new CustomEvent("patient-audio-play", {
+          detail: { id: instanceIdRef.current },
+        })
+      );
     } catch {
       setIsPlaying(false);
     }
@@ -50,6 +72,7 @@ export default function AudioRecordingControl({
 
     if (Number.isFinite(audio.duration) && audio.duration > 0) {
       setDurationSeconds(audio.duration);
+      onDurationChange?.(audio.duration);
     }
   }
 
@@ -86,6 +109,7 @@ export default function AudioRecordingControl({
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
+        onPause={() => setIsPlaying(false)}
       />
       <div className="flex flex-col items-center justify-center gap-3 text-center">
         <div className={`flex items-center justify-center gap-4 ${compact ? "w-full" : "w-full max-w-sm"}`}>
@@ -110,11 +134,6 @@ export default function AudioRecordingControl({
             <p className={`shrink-0 text-slate-500 ${compact ? "text-xs" : "text-sm"}`}>{timeLabel}</p>
           </div>
         </div>
-        {compact && (
-          <div className="w-full">
-            <p className="text-center text-xs text-slate-400">Demo playback</p>
-          </div>
-        )}
       </div>
     </div>
   );

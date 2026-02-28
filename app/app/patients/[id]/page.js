@@ -1,7 +1,11 @@
 import Link from "next/link";
-import AudioRecordingControl from "./AudioRecordingControl";
+import { readdir } from "fs/promises";
+import path from "path";
 import AudioArchive from "./AudioArchive";
 import SendConfirmationButton from "./SendConfirmationButton";
+
+const PUBLIC_AUDIO_DIR = path.join(process.cwd(), "public");
+const AUDIO_FILE_PATTERN = /\.(mp3|wav|m4a|ogg|aac)$/i;
 
 function normalizePatient(patient) {
   return {
@@ -50,19 +54,109 @@ function normalizeEngagementPayload(payload) {
   };
 }
 
-function normalizeAudioItem(item, fallbackIndex = 0) {
+function formatDurationSeconds(durationSeconds) {
+  const totalSeconds = Number(durationSeconds);
+
+  if (!Number.isFinite(totalSeconds) || totalSeconds < 0) {
+    return "--:--";
+  }
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function buildFallbackRecordingDate(itemIndex) {
+  const baseDate = new Date(Date.UTC(2026, 2, 1, 9, 30));
+  baseDate.setUTCDate(baseDate.getUTCDate() - itemIndex * 2);
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(baseDate);
+}
+
+async function getLocalAudioSources() {
+  try {
+    const entries = await readdir(PUBLIC_AUDIO_DIR, { withFileTypes: true });
+
+    return entries
+      .filter((entry) => entry.isFile() && AUDIO_FILE_PATTERN.test(entry.name))
+      .map((entry) => `/${encodeURIComponent(entry.name)}`)
+      .sort((left, right) => left.localeCompare(right));
+  } catch {
+    return [];
+  }
+}
+
+function toPublicAudioSrc(rawPath, fileName) {
+  const directSource =
+    typeof rawPath === "string" &&
+    (rawPath.startsWith("http://") || rawPath.startsWith("https://"));
+  if (directSource) {
+    return rawPath;
+  }
+
+  const sourceCandidate = fileName ?? rawPath;
+  if (!sourceCandidate || typeof sourceCandidate !== "string") {
+    return null;
+  }
+
+  const normalizedPath = sourceCandidate.replaceAll("\\", "/").trim();
+  const filePart = normalizedPath.split("/").filter(Boolean).at(-1);
+
+  if (!filePart) {
+    return null;
+  }
+
+  return `/${encodeURIComponent(filePart)}`;
+}
+
+function buildLocalAudioItem(audioSrc, itemIndex) {
+  const fileName = decodeURIComponent(audioSrc.replace(/^\//, ""));
+  const number = itemIndex + 1;
+
+  return {
+    id: `local-${number}`,
+    title: fileName,
+    date: buildFallbackRecordingDate(itemIndex),
+    duration: "--:--",
+    audioSrc,
+  };
+}
+
+function normalizeAudioItem(item, fallbackIndex = 0, fallbackAudioSources = []) {
   if (!item || typeof item !== "object") {
+    const fallbackAudioSrc = fallbackAudioSources[fallbackIndex] ?? fallbackAudioSources[0] ?? null;
+
+    if (fallbackAudioSrc) {
+      return buildLocalAudioItem(fallbackAudioSrc, fallbackIndex);
+    }
+
     const number = fallbackIndex + 1;
     return {
       id: `rec-${number}`,
       title: `Recording ${String(number).padStart(2, "0")}`,
       date: `2026-02-${String(Math.max(1, 28 - fallbackIndex)).padStart(2, "0")}`,
-      duration: "00:00",
-      audioSrc: "/Sample_1.wav",
+      duration: "--:--",
+      audioSrc: null,
     };
   }
 
   const number = fallbackIndex + 1;
+  const audioSrc =
+    item.audioSrc ??
+    item.audio_url ??
+    item.audioUrl ??
+    toPublicAudioSrc(
+      item.audio_file_path ?? item.file_path ?? item.path,
+      item.audio_file_name
+    ) ??
+    fallbackAudioSources[fallbackIndex] ??
+    fallbackAudioSources[0] ??
+    null;
 
   return {
     id: String(item.id ?? `rec-${number}`),
@@ -70,35 +164,50 @@ function normalizeAudioItem(item, fallbackIndex = 0) {
       item.title ??
       item.name ??
       item.label ??
+      item.audio_file_name ??
       `Recording ${String(number).padStart(2, "0")}`,
     date:
       item.date ??
       item.recorded_at ??
       item.created_at ??
       item.timestamp ??
-      `2026-02-${String(Math.max(1, 28 - fallbackIndex)).padStart(2, "0")}`,
-    duration: item.duration ?? item.length ?? item.time ?? "--:--",
-    audioSrc:
-      item.audioSrc ??
-      item.audio_url ??
-      item.audioUrl ??
-      item.file_path ??
-      item.path ??
-      "/Sample_1.wav",
+      buildFallbackRecordingDate(fallbackIndex),
+    duration:
+      item.duration ??
+      item.length ??
+      item.time ??
+      formatDurationSeconds(item.duration_seconds),
+    audioSrc,
   };
 }
 
-function normalizeLatestAudioPayload(payload) {
+function mergeLatestAudioIntoRecordings(latestAudio, recordings) {
+  if (recordings.length === 0) {
+    return latestAudio?.audioSrc ? [latestAudio] : [];
+  }
+
+  if (!latestAudio?.audioSrc) {
+    return recordings;
+  }
+
+  if (String(recordings[0].id) === String(latestAudio.id)) {
+    return recordings;
+  }
+
+  return [latestAudio, ...recordings.filter((recording) => String(recording.id) !== String(latestAudio.id))];
+}
+
+function normalizeLatestAudioPayload(payload, fallbackAudioSources) {
   const candidate =
     payload?.latest ??
     payload?.audio ??
     payload?.recording ??
     (Array.isArray(payload) ? payload[0] : payload);
 
-  return normalizeAudioItem(candidate, 0);
+  return normalizeAudioItem(candidate, 0, fallbackAudioSources);
 }
 
-function normalizeAllAudioPayload(payload) {
+function normalizeAllAudioPayload(payload, fallbackAudioSources) {
   const list =
     (Array.isArray(payload) && payload) ||
     payload?.audios ||
@@ -108,10 +217,14 @@ function normalizeAllAudioPayload(payload) {
     [];
 
   if (!Array.isArray(list) || list.length === 0) {
-    return Array.from({ length: 9 }, (_, itemIndex) => normalizeAudioItem(null, itemIndex));
+    if (fallbackAudioSources.length > 0) {
+      return fallbackAudioSources.map((audioSrc, itemIndex) => buildLocalAudioItem(audioSrc, itemIndex));
+    }
+
+    return Array.from({ length: 9 }, (_, itemIndex) => normalizeAudioItem(null, itemIndex, []));
   }
 
-  return list.map((item, itemIndex) => normalizeAudioItem(item, itemIndex));
+  return list.map((item, itemIndex) => normalizeAudioItem(item, itemIndex, fallbackAudioSources));
 }
 
 function buildUiModel(patient, diagnosisData, engagementData, latestAudio, recordings) {
@@ -229,6 +342,7 @@ function buildUiModel(patient, diagnosisData, engagementData, latestAudio, recor
 export default async function PatientDetailPage({ params }) {
   const { id } = await params;
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+  const localAudioSources = await getLocalAudioSources();
   let patientResponse;
   let diagnosisPayload = null;
   let engagementPayload = null;
@@ -314,8 +428,11 @@ export default async function PatientDetailPage({ params }) {
   const patient = normalizePatient(await patientResponse.json());
   const diagnosisData = normalizeDiagnosisPayload(diagnosisPayload);
   const engagementData = normalizeEngagementPayload(engagementPayload);
-  const latestAudio = normalizeLatestAudioPayload(latestAudioPayload);
-  const recordings = normalizeAllAudioPayload(allAudioPayload);
+  const latestAudio = normalizeLatestAudioPayload(latestAudioPayload, localAudioSources);
+  const recordings = mergeLatestAudioIntoRecordings(
+    latestAudio,
+    normalizeAllAudioPayload(allAudioPayload, localAudioSources)
+  );
   const ui = buildUiModel(patient, diagnosisData, engagementData, latestAudio, recordings);
   const statusBadgeStyles = {
     red: "border-rose-400 bg-rose-50 text-rose-700",
@@ -439,11 +556,7 @@ export default async function PatientDetailPage({ params }) {
               <InfoRow label="Date & Time" value={ui.latestCheckInDate} />
 
               <div>
-                <p className="text-xl font-medium text-slate-500">Audio Recording</p>
-                <AudioRecordingControl audioSrc={ui.latestAudio.audioSrc} />
-              </div>
-
-              <div>
+                <p className="text-lg font-medium text-slate-500">Recordings</p>
                 <AudioArchive recordings={ui.recordings} />
               </div>
 
