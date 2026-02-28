@@ -64,7 +64,8 @@ class Patient(Base):
     gender = Column(String, nullable=False)  # "M" or "F"
     last_visit = Column(String, nullable=True)  # Date string (e.g., "2026-02-25")
     next_appointment = Column(String, nullable=True)  # Date string or "-"
-    status = Column(String, nullable=False)  # "Active", "Follow-up", "Pending"
+    status = Column(String, nullable=False)  # "Active", "Follow-up", "Pending" (treatment status)
+    risk = Column(String, nullable=False)  # "High", "Medium", "Low", "Undetermined" (risk level)
     phone = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -73,6 +74,7 @@ class Patient(Base):
     diagnoses = relationship("Diagnosis", back_populates="patient", cascade="all, delete-orphan")
     engagement = relationship("Engagement", back_populates="patient", uselist=False, cascade="all, delete-orphan")
     voice_biometrics = relationship("VoiceBiometrics", back_populates="patient", uselist=False, cascade="all, delete-orphan")
+    voice_recordings = relationship("VoiceRecording", back_populates="patient", cascade="all, delete-orphan")
 
 # Diagnosis model for patient diagnoses
 class Diagnosis(Base):
@@ -81,7 +83,7 @@ class Diagnosis(Base):
     id = Column(Integer, primary_key=True, index=True)
     patient_id = Column(Integer, ForeignKey("patients.id"), nullable=False)
     diagnosis = Column(String, nullable=False)
-    status = Column(String, nullable=False)  # "high", "medium", "lower", "undetermined"
+    risk = Column(String, nullable=False)  # "high", "medium", "lower", "undetermined"
     triggered_alerts = Column(String, nullable=True)  # Alert messages
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -119,6 +121,43 @@ class VoiceBiometrics(Base):
     patient = relationship("Patient", back_populates="voice_biometrics")
 
 
+# Voice Recording model - Multiple recordings per patient
+class VoiceRecording(Base):
+    __tablename__ = "voice_recordings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"), nullable=False, index=True)
+
+    # Audio file
+    audio_file_path = Column(String, nullable=False)  # Path to .wav file
+    audio_file_name = Column(String, nullable=False)  # Filename for display
+
+    # Analysis JSON
+    analysis_json_path = Column(String, nullable=False)  # Path to analysis JSON
+
+    # Kintsugi scores
+    depression_score = Column(Integer, nullable=True)  # 0-2
+    depression_severity = Column(String, nullable=True)  # e.g., "Mild-moderate depression"
+    depression_raw = Column(Float, nullable=True)
+
+    anxiety_score = Column(Integer, nullable=True)  # 0-3
+    anxiety_severity = Column(String, nullable=True)  # e.g., "Mild anxiety"
+    anxiety_raw = Column(Float, nullable=True)
+
+    # Acoustic features summary (store as JSON string)
+    acoustic_summary = Column(String, nullable=True)  # JSON string
+
+    # Metadata
+    recorded_at = Column(DateTime, default=datetime.utcnow, index=True)
+    duration_seconds = Column(Float, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    patient = relationship("Patient", back_populates="voice_recordings")
+
+
 # ========================================
 # PYDANTIC SCHEMAS
 # ========================================
@@ -152,7 +191,8 @@ class PatientCreate(BaseModel):
     gender: str  # "M" or "F"
     last_visit: Optional[str] = None
     next_appointment: Optional[str] = None
-    status: str = "Active"  # "Active", "Follow-up", "Pending"
+    status: str = "Active"  # "Active", "Follow-up", "Pending" (treatment status)
+    risk: str = "Undetermined"  # "High", "Medium", "Low", "Undetermined" (risk level)
     phone: str
 
 class PatientUpdate(BaseModel):
@@ -162,6 +202,7 @@ class PatientUpdate(BaseModel):
     last_visit: Optional[str] = None
     next_appointment: Optional[str] = None
     status: Optional[str] = None
+    risk: Optional[str] = None
     phone: Optional[str] = None
 
 class PatientResponse(BaseModel):
@@ -173,6 +214,7 @@ class PatientResponse(BaseModel):
     last_visit: Optional[str]
     next_appointment: Optional[str]
     status: str
+    risk: str
     phone: str
 
     class Config:
@@ -366,6 +408,7 @@ def create_patient(patient_data: PatientCreate, db: Session = Depends(get_db)):
         last_visit=patient_data.last_visit,
         next_appointment=patient_data.next_appointment,
         status=patient_data.status,
+        risk=patient_data.risk,
         phone=patient_data.phone
     )
 
@@ -443,7 +486,7 @@ def get_patient_diagnoses(patient_id: int, db: Session = Depends(get_db)):
         {
             "id": d.id,
             "diagnosis": d.diagnosis,
-            "status": d.status,
+            "risk": d.risk,
             "triggered_alerts": d.triggered_alerts or "No alerts"
         }
         for d in diagnoses
@@ -490,10 +533,166 @@ def get_patient_engagement(patient_id: int, db: Session = Depends(get_db)):
         "call_percentage": round(call_percentage, 2)
     }
 
+
 ###
-# Voice Biometrics endpoint
+# Voice Recording Endpoints
 ###
+
+@app.get("/api/patients/{patient_id}/VLatest")
+def get_latest_voice_recording(patient_id: int, db: Session = Depends(get_db)):
+    """Get the latest voice recording (audio file path) for a patient"""
+
+    # Verify patient exists
+    patient = db.query(Patient).filter(Patient.id == patient_id).first()
+    if not patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Patient with ID {patient_id} not found"
+        )
+
+    # Get latest recording
+    latest_recording = db.query(VoiceRecording)\
+        .filter(VoiceRecording.patient_id == patient_id)\
+        .order_by(VoiceRecording.recorded_at.desc())\
+        .first()
+
+    if not latest_recording:
+        return {
+            "patient_id": patient_id,
+            "recording": None,
+            "message": "No voice recordings found for this patient"
+        }
+
+    return {
+        "patient_id": patient_id,
+        "recording": {
+            "id": latest_recording.id,
+            "audio_file_name": latest_recording.audio_file_name,
+            "audio_file_path": latest_recording.audio_file_path,
+            "recorded_at": latest_recording.recorded_at.isoformat(),
+            "duration_seconds": latest_recording.duration_seconds,
+            "depression_score": latest_recording.depression_score,
+            "anxiety_score": latest_recording.anxiety_score
+        }
+    }
+
+
+@app.get("/api/patients/{patient_id}/VAll")
+def get_all_voice_recordings(patient_id: int, db: Session = Depends(get_db)):
+    """Get all voice recordings (audio file paths) for a patient - list format"""
+
+    # Verify patient exists
+    patient = db.query(Patient).filter(Patient.id == patient_id).first()
+    if not patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Patient with ID {patient_id} not found"
+        )
+
+    # Get all recordings
+    recordings = db.query(VoiceRecording)\
+        .filter(VoiceRecording.patient_id == patient_id)\
+        .order_by(VoiceRecording.recorded_at.desc())\
+        .all()
+
+    if not recordings:
+        return {
+            "patient_id": patient_id,
+            "count": 0,
+            "recordings": [],
+            "message": "No voice recordings found for this patient"
+        }
+
+    # Return as list
+    recordings_list = [
+        {
+            "id": rec.id,
+            "audio_file_name": rec.audio_file_name,
+            "audio_file_path": rec.audio_file_path,
+            "recorded_at": rec.recorded_at.isoformat(),
+            "duration_seconds": rec.duration_seconds,
+            "depression_score": rec.depression_score,
+            "anxiety_score": rec.anxiety_score
+        }
+        for rec in recordings
+    ]
+
+    return {
+        "patient_id": patient_id,
+        "count": len(recordings_list),
+        "recordings": recordings_list
+    }
+
+
 @app.get("/api/patients/{patient_id}/vb")
+def get_patient_voice_biometrics(patient_id: int, db: Session = Depends(get_db)):
+    """Get voice biometrics analysis JSON files for a patient"""
+
+    # Verify patient exists
+    patient = db.query(Patient).filter(Patient.id == patient_id).first()
+    if not patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Patient with ID {patient_id} not found"
+        )
+
+    # Get all recordings with analysis
+    recordings = db.query(VoiceRecording)\
+        .filter(VoiceRecording.patient_id == patient_id)\
+        .order_by(VoiceRecording.recorded_at.desc())\
+        .all()
+
+    if not recordings:
+        return {
+            "patient_id": patient_id,
+            "count": 0,
+            "analyses": [],
+            "message": "No voice analysis found for this patient"
+        }
+
+    # Return analysis data for each recording
+    analyses = []
+    for rec in recordings:
+        analysis_data = {
+            "recording_id": rec.id,
+            "audio_file_name": rec.audio_file_name,
+            "recorded_at": rec.recorded_at.isoformat(),
+            "analysis_json_path": rec.analysis_json_path,
+
+            # Kintsugi scores
+            "kintsugi_scores": {
+                "depression": {
+                    "score": rec.depression_score,
+                    "severity": rec.depression_severity,
+                    "raw_score": rec.depression_raw
+                },
+                "anxiety": {
+                    "score": rec.anxiety_score,
+                    "severity": rec.anxiety_severity,
+                    "raw_score": rec.anxiety_raw
+                }
+            },
+
+            # Acoustic features (if stored)
+            "acoustic_summary": json.loads(rec.acoustic_summary) if rec.acoustic_summary else None,
+
+            "duration_seconds": rec.duration_seconds
+        }
+
+        analyses.append(analysis_data)
+
+    return {
+        "patient_id": patient_id,
+        "patient_name": patient.name,
+        "count": len(analyses),
+        "analyses": analyses
+    }
+
+
+###
+# Voice Biometrics endpoint (Legacy - kept for compatibility)
+###
+@app.get("/api/patients/{patient_id}/vb/legacy")
 def get_patient_voice_biometrics(patient_id: int, db: Session = Depends(get_db)):
     """Get voice biometrics data for a specific patient"""
 
