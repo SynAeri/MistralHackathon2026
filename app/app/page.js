@@ -81,9 +81,17 @@ export default function Home() {
             Review recent visits, upcoming appointments, and open each record for more detail.
           </p>
         </div>
-        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500" />
-          {isLoading ? "Syncing records" : `${patients.length} patients loaded`}
+        <div className="flex flex-col items-start gap-3 sm:items-end">
+          <Link
+            href="/add-patient"
+            className="inline-flex items-center rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600"
+          >
+            Add Patient
+          </Link>
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
+            <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500" />
+            {isLoading ? "Syncing records" : `${patients.length} patients loaded`}
+          </div>
         </div>
       </div>
       <div className="mb-6 flex justify-center rounded-md bg-white p-3">
