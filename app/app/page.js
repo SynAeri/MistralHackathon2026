@@ -31,7 +31,7 @@ export default function Home() {
         setIsLoading(true);
         setError("");
 
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
         const response = await fetch(`${apiBaseUrl}/api/patients`);
 
         if (!response.ok) {
@@ -157,7 +157,7 @@ export default function Home() {
                 <td className="px-6 py-3 text-gray-600">{patient.phone}</td>
                 <td className="px-6 py-3 text-center">
                   <Link
-                    href={`/patient/${patient.id}`}
+                    href={`/patients/${patient.id}`}
                     className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-lg font-bold text-blue-600 transition hover:border-blue-300 hover:bg-blue-100"
                     aria-label={`View details for ${patient.name}`}
                   >
