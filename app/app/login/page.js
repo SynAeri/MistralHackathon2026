@@ -54,10 +54,10 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-10">
-              <h1 className="max-w-md text-3xl font-bold tracking-[-0.04em] text-slate-800 md:text-4xl">
+              <h1 className="max-w-md text-2xl font-bold tracking-[-0.04em] text-slate-800 md:text-3xl">
                 Secure access to patient care tools.
               </h1>
-              <p className="mt-5 max-w-xl text-base leading-8 text-slate-600">
+              <p className="mt-5 max-w-xl text-sm leading-7 text-slate-600 md:text-base">
                 Sign in to review patient records, monitor risk, and manage follow-up workflows in
                 the same clinical dashboard used across this application.
               </p>
@@ -94,7 +94,7 @@ export default function LoginPage() {
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-teal-600">
                 Doctor Login
               </p>
-              <h2 className="mt-2 text-3xl font-bold tracking-[-0.03em] text-slate-800">
+              <h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-slate-800">
                 Sign in to continue
               </h2>
               <p className="mt-3 text-sm leading-7 text-slate-500">

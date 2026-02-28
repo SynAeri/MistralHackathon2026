@@ -270,10 +270,10 @@ export default async function PatientDetailPage({ params }) {
         <section className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)] md:p-9">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-[-0.03em] text-slate-800 md:text-4xl">
+              <h1 className="text-2xl font-bold tracking-[-0.03em] text-slate-800 md:text-3xl">
                 {patient.name}
               </h1>
-              <div className="mt-5 flex flex-wrap gap-x-10 gap-y-3 text-lg text-slate-600">
+              <div className="mt-5 flex flex-wrap gap-x-8 gap-y-3 text-base text-slate-600">
                 <p>DOB: 08/12/1985 (Age {patient.age})</p>
                 <p>MRN: {patient.mrn}</p>
                 <p>{patient.phone}</p>
@@ -344,7 +344,7 @@ export default async function PatientDetailPage({ params }) {
             </section>
 
             <section className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
-              <h2 className="text-3xl font-bold tracking-[-0.03em] text-slate-800">
+              <h2 className="text-2xl font-bold tracking-[-0.03em] text-slate-800">
                 Engagement &amp; Adherence
               </h2>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -365,7 +365,7 @@ export default async function PatientDetailPage({ params }) {
           </div>
 
           <aside className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
-            <h2 className="text-3xl font-bold tracking-[-0.03em] text-slate-800">Latest Check-In</h2>
+            <h2 className="text-2xl font-bold tracking-[-0.03em] text-slate-800">Latest Check-In</h2>
             <div className="mt-8 space-y-6 text-slate-700">
               <InfoRow label="Date & Time" value={ui.latestCheckInDate} />
               {/* <InfoRow label="Duration" value={ui.duration} /> */}
@@ -390,7 +390,7 @@ export default async function PatientDetailPage({ params }) {
         </div>
 
         <section className="mt-6 rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
-          <h2 className="text-3xl font-bold tracking-[-0.03em] text-slate-800">
+          <h2 className="text-2xl font-bold tracking-[-0.03em] text-slate-800">
             Voice Biomarkers (Change vs Baseline)
           </h2>
           <div className="mt-6 grid gap-5 xl:grid-cols-2">
@@ -416,8 +416,8 @@ function DetailCard({ label, value }) {
 function InfoRow({ label, value }) {
   return (
     <div>
-      <p className="text-lg font-medium text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-slate-800">{value}</p>
+      <p className="text-base font-medium text-slate-500">{label}</p>
+      <p className="mt-2 text-xl font-semibold tracking-[-0.02em] text-slate-800">{value}</p>
     </div>
   );
 }
@@ -430,9 +430,9 @@ function MetricCard({ label, value, detail, tone }) {
 
   return (
     <div className={`rounded-[1.6rem] border p-6 ${styles}`}>
-      <p className="text-lg font-medium">{label}</p>
+      <p className="text-base font-medium">{label}</p>
       <div className="mt-5 flex items-end gap-3">
-        <p className="text-5xl font-bold tracking-[-0.04em]">{value}</p>
+        <p className="text-3xl font-bold tracking-[-0.04em]">{value}</p>
         <p className="pb-2 text-base">{detail}</p>
       </div>
     </div>
@@ -474,8 +474,8 @@ function BiomarkerCard({ item }) {
         <div>
           <p className="text-lg font-semibold text-slate-800">{item.title}</p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
-            <p className="text-4xl font-bold tracking-[-0.04em] text-slate-800">{item.value}</p>
-            <p className="pb-2 text-lg text-slate-500">{item.unit}</p>
+            <p className="text-2xl font-bold tracking-[-0.04em] text-slate-800">{item.value}</p>
+            <p className="pb-2 text-base text-slate-500">{item.unit}</p>
             <p className={`pb-2 text-base font-medium ${style.value}`}>{item.delta}</p>
           </div>
         </div>
