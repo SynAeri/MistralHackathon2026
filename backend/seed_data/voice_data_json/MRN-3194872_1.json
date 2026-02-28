@@ -1,0 +1,115 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2026-03-01T06:54:36.894471",
+    "audio_file": "/home/jordanm/Documents/Github/MistralHackathon2026/backend/storage/voice_data/MRN-3194872_1.wav",
+    "patient_id": "MRN-3194872",
+    "clinical_context": "depression and anxiety screening",
+    "pipeline_version": "1.0.0-kintsugi"
+  },
+  "kintsugi_scores": {
+    "depression": {
+      "severity_score": 0,
+      "severity_label": "No depression (PHQ-9 \u2264 9)",
+      "raw_score": -1.865921974182129
+    },
+    "anxiety": {
+      "severity_score": 0,
+      "severity_label": "No anxiety (GAD-7 \u2264 4)",
+      "raw_score": -1.701907753944397
+    }
+  },
+  "acoustic_parameters": {
+    "quality_control": {
+      "passed": true,
+      "warnings": [],
+      "speech_ratio_check": true,
+      "voiced_frames_check": true,
+      "voiced_frame_count": 899,
+      "speech_ratio_value": 0.8453609359460317
+    },
+    "temporal": {
+      "pause_duration_mean_sec": 0.22400000000000003,
+      "pause_duration_median_sec": 0.14400000000000002,
+      "pause_duration_p95_sec": 0.5184000000000001,
+      "pause_duration_total_sec": 4.48,
+      "pause_rate_per_min": 41.421177871598665,
+      "speech_duration_sec": 24.4906875,
+      "speech_ratio": 0.8453609359460317,
+      "total_duration_sec": 28.9706875
+    },
+    "prosodic": {
+      "speech_rate_segments_per_sec": 0.7248706127529766,
+      "intensity_mean_rms": 0.10034085065126419,
+      "energy_variability_iqr": 0.11117452941834927,
+      "energy_variability_std": 0.07207491993904114,
+      "f0_mean_hz": 444.761962890625,
+      "f0_median_hz": 257.501220703125,
+      "f0_std_hz": 634.33740234375,
+      "f0_iqr_hz": 179.4339370727539,
+      "f0_range_hz": 3823.9365234375,
+      "f0_min_hz": 152.7976531982422,
+      "f0_max_hz": 3976.734130859375,
+      "f0_p25_hz": 213.90828704833984,
+      "f0_p75_hz": 393.34222412109375,
+      "f0_slope": 0.2241683597178281,
+      "stress_frequency_per_sec": 1.4497412255059532,
+      "rhythm_regularity_std_sec": 0.7309405372906234
+    },
+    "spectral": {
+      "mfcc_1_mean": -220.32081604003906,
+      "mfcc_2_mean": 84.51395416259766,
+      "mfcc_3_mean": 14.646181106567383,
+      "mfcc_4_mean": 26.000633239746094,
+      "mfcc_5_mean": -6.793100357055664,
+      "mfcc_6_mean": 16.325000762939453,
+      "mfcc_7_mean": -11.473099708557129,
+      "mfcc_8_mean": -17.719532012939453,
+      "mfcc_9_mean": -6.671368598937988,
+      "mfcc_10_mean": -7.293424129486084,
+      "mfcc_11_mean": -13.613112449645996,
+      "mfcc_12_mean": 1.0223915576934814,
+      "mfcc_13_mean": -5.844926357269287,
+      "spectral_centroid_mean_hz": 1751.9874651692412,
+      "spectral_centroid_std_hz": 1072.0386754918666,
+      "spectral_rolloff_mean_hz": 3477.424806843267,
+      "spectral_bandwidth_mean_hz": 1680.6351420529927,
+      "cpp": 0.02903394252529185,
+      "zero_crossing_rate_mean": 0.12112608650662252
+    },
+    "perturbation": {
+      "jitter_percent": 37.17467188835144,
+      "shimmer_percent": 15.535463392734528,
+      "reliable": true,
+      "note": "Perturbation features computed successfully."
+    },
+    "spectral_quality": {
+      "hnr_db": 2.700318694114685
+    }
+  },
+  "spectrogram": {
+    "path": null,
+    "duration": null
+  },
+  "clinical_analysis": {
+    "llm_interpretation": "### **Clinical Voice Analysis Report**\n**Patient ID:** [Redacted]\n**Date:** [Redacted]\n**Model Used:** Kintsugi Depression & Anxiety Screening (PHQ-9, GAD-7) + Acoustic Voice Analysis\n\n---\n\n### **1. Interpretation of Kintsugi Depression & Anxiety Severity Scores**\nThe Kintsugi model provides **quantitative, AI-driven screening** for depression and anxiety based on voice biomarkers. The results indicate:\n\n- **Depression Severity:**\n  - **No depression (PHQ-9 \u2264 9)** \u2013 Severity Score: **0/2** (Raw Score: **-1.866**)\n  - **Interpretation:** The model does **not detect clinically significant depressive symptoms** in this sample. The negative raw score suggests **subclinical or absent depressive traits** in the recorded speech.\n\n- **Anxiety Severity:**\n  - **No anxiety (GAD-7 \u2264 4)** \u2013 Severity Score: **0/3** (Raw Score: **-1.702**)\n  - **Interpretation:** Similarly, **no detectable anxiety** is present in the voice data. The negative raw score aligns with **minimal or absent anxious traits** in the speech sample.\n\n**Key Takeaway:**\nThe **Kintsugi model does not flag depression or anxiety** in this individual based on their voice. However, **acoustic voice analysis can provide nuanced, subclinical insights** that may warrant further clinical exploration.\n\n---\n\n### **2. Analysis of Acoustic Parameters & Their Correlation with Kintsugi Scores**\nWhile the Kintsugi model suggests **no depression/anxiety**, several **acoustic features** may indicate **subtle psychological or physiological stress markers** that could be clinically relevant.\n\n#### **A. Prosodic Features (Emotional & Cognitive Load)**\n| **Parameter**       | **Value**       | **Clinical Interpretation**                                                                 | **Correlation with Kintsugi Scores** |\n|----------------------|----------------|-------------------------------------------------------------------------------------------|--------------------------------------|\n| **Pitch Mean (444.8 Hz)** | High (avg. female pitch) | Elevated pitch may suggest **nervousness, anxiety-proneness, or hypervigilance** (even if GAD-7 is negative). | **No direct depression/anxiety signal**, but high pitch can correlate with **subclinical stress**. |\n| **Pitch Variability (634.3 Hz)** | Extremely high (normal range: ~100\u2013300 Hz) | **Excessive pitch fluctuation** is linked to **emotional lability, cognitive load, or mild anxiety** (even if GAD-7 is negative). | **Suggests subclinical emotional dysregulation**\u2014may indicate **residual stress or trauma sensitivity**. |\n| **Pitch Range (3823.9 Hz)** | **Extremely wide** (normal: ~500\u20131500 Hz) | **Hyperarousal or emotional intensity**\u2014could reflect **uncontrolled emotional expression** or **subclinical anxiety**. | **Not captured by Kintsugi**, but may indicate **vulnerability to stress**. |\n| **Loudness (0.1003 RMS)** | Low | **Hypophonia (soft speech)** can indicate **depression, fatigue, or low motivation**\u2014but **Kintsugi PHQ-9 is negative**. | **Possible subclinical fatigue or emotional withdrawal**\u2014may need further assessment. |\n| **Energy Variability (0.1112 IQR)** | Low | **Low variability** suggests **monotone speech**, which can be associated with **depression or emotional blunting**\u2014but **Kintsugi PHQ-9 is negative**. | **Contradictory finding**\u2014may indicate **compensatory speech patterns** (e.g., masking emotional distress). |\n| **Speech Rate (0.72 seg/sec)** | **Slow** (normal: ~1.5\u20132.5 seg/sec) | **Bradyphrenia (slow speech)** is a **classic depressive symptom**, but **Kintsugi PHQ-9 is negative**. | **Possible subclinical cognitive slowing**\u2014may indicate **early-stage depression or ADHD-like traits**. |\n\n#### **B. Temporal Features (Speech Flow & Disfluency)**\n| **Parameter**       | **Value**       | **Clinical Interpretation**                                                                 | **Correlation with Kintsugi Scores** |\n|----------------------|----------------|-------------------------------------------------------------------------------------------|--------------------------------------|\n| **Pause Duration (0.22 sec)** | **Slightly long** (normal: ~0.1\u20130.3 sec) | **Prolonged pauses** can indicate **cognitive load, indecisiveness, or",
+    "clinical_summary": "**Clinical Voice Screening Summary Report**\n\n**Patient ID:** [Redacted]\n**Date:** [Redacted]\n**Screening Method:** AI-Assisted Voice Analysis (Kintsugi Depression/Anxiety Screening + Acoustic Voice Assessment)\n\n---\n### **Brief Overview**\nThis report summarizes the results of a **voice-based mental health screening** using the Kintsugi model (PHQ-9/GAD-7) and **acoustic voice analysis**. The **Kintsugi algorithm did not detect clinically significant depression or anxiety** based on voice biomarkers. However, **subtle acoustic anomalies** suggest potential **subclinical stress markers** warranting further clinical consideration.\n\n---\n\n### **Key Findings**\n\n#### **1. Kintsugi Mental Health Screening**\n- **Depression (PHQ-9):** No clinically significant depressive symptoms detected (**Severity Score: 0/2**, Raw Score: **-1.866**).\n- **Anxiety (GAD-7):** No clinically significant anxiety detected (**Severity Score: 0/3**, Raw Score: **-1.702**).\n\n#### **2. Acoustic Voice Analysis (Potential Subclinical Indicators)**\n- **Prosodic Features:**\n  - **High pitch variability & wide pitch range** \u2192 Possible **subclinical emotional dysregulation or stress sensitivity**.\n  - **Low loudness (hypophonia)** \u2192 May indicate **fatigue, emotional withdrawal, or compensatory speech patterns**.\n  - **Slow speech rate** \u2192 Potential **cognitive slowing** (though PHQ-9 negative).\n- **Temporal Features:**\n  - **Slightly prolonged pauses** \u2192 Could reflect **cognitive load or mild anxiety-proneness**.\n\n---\n### **Clinical Recommendations**\n1. **Rule Out Clinical Depression/Anxiety:** Given **negative Kintsugi scores**, formal **PHQ-9/GAD-7 questionnaire** should be administered to confirm absence of symptoms.\n2. **Explore Subclinical Stress Markers:**\n   - Assess for **chronic stress, trauma history, or ADHD-like cognitive patterns** (e.g., slow speech, pitch variability).\n   - Consider **psychological screening for emotional dysregulation** (e.g., DISCO, STAI).\n3. **Speech-Language Pathology (SLP) Referral (if applicable):**\n   - If **hypophonia or speech rate abnormalities** persist, evaluate for **neurological or psychological speech-motor factors**.\n4. **Follow-Up Monitoring:**\n   - If **high pitch variability or emotional lability** is noted, monitor for **early signs of mood instability** in future assessments.\n\n---\n### **Disclaimer**\nThis report is an **AI-assisted screening tool** and **not a diagnostic evaluation**. Clinical decisions must be based on **comprehensive patient history, symptom assessment, and professional judgment**. For accurate diagnosis, **direct patient interview and standardized questionnaires** are required.\n\n---\n**Next Steps:**\n- **Primary Care Provider:** Confirm findings with structured mental health screening.\n- **Specialist Referral:** Consider psychiatry/psychology if subclinical concerns persist.\n- **Reassessment:** Repeat voice screening if symptoms develop or change.",
+    "model_used": "ministral-8b-latest"
+  },
+  "parameters_summary": {
+    "pitch_mean_hz": 444.761962890625,
+    "pitch_variability_hz": 634.33740234375,
+    "pitch_range_hz": 3823.9365234375,
+    "loudness_rms": 0.10034085065126419,
+    "energy_variability_iqr": 0.11117452941834927,
+    "speech_rate_segments_per_sec": 0.7248706127529766,
+    "pause_duration_mean_sec": 0.22400000000000003,
+    "pause_rate_per_min": 41.421177871598665,
+    "speech_ratio": 0.8453609359460317,
+    "total_duration_sec": 28.9706875,
+    "voice_brightness_hz": 1751.9874651692412,
+    "cpp": 0.02903394252529185,
+    "jitter_percent": 37.17467188835144,
+    "shimmer_percent": 15.535463392734528,
+    "hnr_db": 2.700318694114685
+  }
+}
