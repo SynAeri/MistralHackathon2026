@@ -147,11 +147,11 @@ export default function Home() {
                 <td className="px-6 py-3">
                   <span
                     className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${
-                      patient.status === "Active"
+                      patient.status === "Low"
                         ? "bg-green-200 text-green-800"
-                        : patient.status === "Follow-up"
-                        ? "bg-yellow-200 text-yellow-800"
-                        : "bg-gray-200 text-gray-800"
+                        : patient.status === "Medium"
+                        ? "bg-yellow-200 text-yellow-800":  patient.status === "Undetermined"? "bg-yellow-200 text-yellow-800"
+                        : "bg-gray-200 text-red-800"
                     }`}
                   >
                     {patient.status}

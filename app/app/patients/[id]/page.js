@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AudioRecordingControl from "./AudioRecordingControl";
+import AudioArchive from "./AudioArchive";
 import SendConfirmationButton from "./SendConfirmationButton";
 
 function normalizePatient(patient) {
@@ -81,6 +82,19 @@ function buildUiModel(patient, diagnosisData, engagementData) {
     lower: "Within baseline",
     undetermined: "No baseline yet",
   };
+  const recordings = Array.from({ length: 9 }, (_, itemIndex) => {
+    const number = itemIndex + 1;
+    const minutes = number < 4 ? "01" : number < 7 ? "00" : "02";
+    const seconds = String((number * 7) % 60).padStart(2, "0");
+
+    return {
+      id: `rec-${number}`,
+      title: `Recording ${String(number).padStart(2, "0")}`,
+      date: `2026-02-${String(28 - itemIndex).padStart(2, "0")}`,
+      duration: `${minutes}:${seconds}`,
+      audioSrc: "/Sample_1.wav",
+    };
+  });
 
   return {
     diagnosis: diagnosisData.diagnosis,
@@ -91,8 +105,9 @@ function buildUiModel(patient, diagnosisData, engagementData) {
     requestedDate: patient.nextAppointment === "-" ? "March 5, 2026" : patient.nextAppointment,
     requestedTime: "2:30 PM",
     latestCheckInDate: "Apr 22, 2024, 4:05PM",
-    duration: "65 seconds",
+    // duration: "65 seconds",
     transcript: transcriptMap[index],
+    recordings,
     completion: Math.round(engagementData.callPercentage),
     callLabel: `${engagementData.completedCalls}/${engagementData.totalCalls} calls`,
     missedStreak: engagementData.callsUnpicked,
@@ -353,11 +368,15 @@ export default async function PatientDetailPage({ params }) {
             <h2 className="text-3xl font-bold tracking-[-0.03em] text-slate-800">Latest Check-In</h2>
             <div className="mt-8 space-y-6 text-slate-700">
               <InfoRow label="Date & Time" value={ui.latestCheckInDate} />
-              <InfoRow label="Duration" value={ui.duration} />
+              {/* <InfoRow label="Duration" value={ui.duration} /> */}
 
               <div>
                 <p className="text-xl font-medium text-slate-500">Audio Recording</p>
                 <AudioRecordingControl />
+              </div>
+
+              <div>
+                <AudioArchive recordings={ui.recordings} />
               </div>
 
               <div>

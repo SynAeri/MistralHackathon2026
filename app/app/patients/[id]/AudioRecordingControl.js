@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 const DEMO_AUDIO_SRC = "/Sample_1.wav";
 
-export default function AudioRecordingControl() {
+export default function AudioRecordingControl({
+  audioSrc = DEMO_AUDIO_SRC,
+  className = "",
+  compact = false,
+}) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [durationSeconds, setDurationSeconds] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -72,36 +76,45 @@ export default function AudioRecordingControl() {
   }`;
 
   return (
-    <div className="mt-3 rounded-[1.5rem] bg-cyan-50 p-4">
+    <div
+      className={`${compact ? "rounded-2xl bg-white p-3" : "mt-3 rounded-[1.5rem] bg-cyan-50 p-4"} ${className}`.trim()}
+    >
       <audio
         ref={audioRef}
-        src={DEMO_AUDIO_SRC}
+        src={audioSrc}
         preload="metadata"
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
       />
       <div className="flex flex-col items-center justify-center gap-3 text-center">
-        <div className="flex w-full max-w-sm items-center justify-center gap-4">
+        <div className={`flex items-center justify-center gap-4 ${compact ? "w-full" : "w-full max-w-sm"}`}>
           <button
             type="button"
             onClick={handleToggle}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white shadow-md transition hover:bg-blue-600"
+            className={`flex shrink-0 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white shadow-md transition hover:bg-blue-600 ${
+              compact ? "h-9 w-9" : "h-11 w-11"
+            }`}
           >
             {isPlaying ? "||" : ">"}
           </button>
-          <div className="w-full max-w-xs">
-            <div className="h-3 overflow-hidden rounded-full bg-slate-200">
-              <div
-                className="h-full rounded-full bg-blue-500 transition-[width] duration-200"
-                style={{ width: `${progressPercent}%` }}
-              />
+          <div className={`flex items-center gap-3 ${compact ? "w-full" : "w-full max-w-xs"}`}>
+            <div className="w-full">
+              <div className={`${compact ? "h-2.5" : "h-3"} overflow-hidden rounded-full bg-slate-200`}>
+                <div
+                  className="h-full rounded-full bg-blue-500 transition-[width] duration-200"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
+            <p className={`shrink-0 text-slate-500 ${compact ? "text-xs" : "text-sm"}`}>{timeLabel}</p>
           </div>
         </div>
-        <div className="w-full max-w-xs">
-          <p className="text-center text-lg text-slate-500">{timeLabel}</p>
-        </div>
+        {compact && (
+          <div className="w-full">
+            <p className="text-center text-xs text-slate-400">Demo playback</p>
+          </div>
+        )}
       </div>
     </div>
   );
