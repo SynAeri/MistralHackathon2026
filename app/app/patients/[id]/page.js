@@ -16,8 +16,40 @@ function normalizePatient(patient) {
   };
 }
 
-function buildUiModel(patient) {
-  const diagnoses = ["Depression", "Anxiety", "Mood Disorder", "Stress Response"];
+function normalizeDiagnosisPayload(payload) {
+  const diagnoses = Array.isArray(payload?.diagnoses) ? payload.diagnoses : [];
+  const primaryDiagnosis = diagnoses[0] ?? null;
+  const rawAlerts = primaryDiagnosis?.triggered_alerts ?? "No alerts";
+  const alerts =
+    rawAlerts === "No alerts"
+      ? ["No active alerts"]
+      : rawAlerts
+          .split(/\s*[|,;]\s*/)
+          .map((alert) => alert.trim())
+          .filter(Boolean);
+
+  return {
+    diagnosis: primaryDiagnosis?.diagnosis ?? "Undetermined",
+    status: primaryDiagnosis?.status ?? "undetermined",
+    alerts,
+  };
+}
+
+function normalizeEngagementPayload(payload) {
+  const totalCalls = Number(payload?.total_calls ?? 0);
+  const callsUnpicked = Number(payload?.calls_unpicked ?? 0);
+  const completedCalls = Math.max(0, totalCalls - callsUnpicked);
+  const percentage = Number(payload?.call_percentage ?? 0);
+
+  return {
+    totalCalls,
+    callsUnpicked,
+    completedCalls,
+    callPercentage: Number.isFinite(percentage) ? percentage : 0,
+  };
+}
+
+function buildUiModel(patient, diagnosisData, engagementData) {
   const assignedClinicians = [
     "Dr. William Carter",
     "Dr. Maya Singh",
@@ -30,12 +62,30 @@ function buildUiModel(patient) {
     "I am keeping up with some of the plan, but the last few days have been rough. I canceled one appointment, avoided calls, and felt more withdrawn than usual.",
     "The good days feel shorter right now. I can still manage basic tasks, but I notice less energy, slower speech, and less motivation to respond to people.",
   ];
-  const index = patient.id % diagnoses.length;
-  const completion = Math.max(62, 94 - patient.id * 2);
-  const streak = patient.id % 3 === 0 ? 2 : 1;
+  const index = patient.id % assignedClinicians.length;
+  const monitorStatusMap = {
+    high: "ALERT",
+    medium: "MONITOR",
+    lower: "STABLE",
+    undetermined: "REVIEW",
+  };
+  const monitorToneMap = {
+    high: "red",
+    medium: "amber",
+    lower: "green",
+    undetermined: "slate",
+  };
+  const symptomDeltaMap = {
+    high: "+22% vs baseline",
+    medium: "+12% vs baseline",
+    lower: "Within baseline",
+    undetermined: "No baseline yet",
+  };
 
   return {
-    diagnosis: diagnoses[index],
+    diagnosis: diagnosisData.diagnosis,
+    diagnosisStatus: monitorStatusMap[diagnosisData.status] ?? "REVIEW",
+    diagnosisTone: monitorToneMap[diagnosisData.status] ?? "slate",
     assignedClinician: assignedClinicians[index],
     updatedAt: "February 28, 2026",
     requestedDate: patient.nextAppointment === "-" ? "March 5, 2026" : patient.nextAppointment,
@@ -43,10 +93,11 @@ function buildUiModel(patient) {
     latestCheckInDate: "Apr 22, 2024, 4:05PM",
     duration: "65 seconds",
     transcript: transcriptMap[index],
-    completion,
-    callLabel: "12/14 calls",
-    missedStreak: streak,
-    symptomDelta: "+22% vs baseline",
+    completion: Math.round(engagementData.callPercentage),
+    callLabel: `${engagementData.completedCalls}/${engagementData.totalCalls} calls`,
+    missedStreak: engagementData.callsUnpicked,
+    symptomDelta: symptomDeltaMap[diagnosisData.status] ?? "No baseline yet",
+    alerts: diagnosisData.alerts,
     biomarkers: [
       {
         title: "Speech Duration",
@@ -113,12 +164,32 @@ function buildUiModel(patient) {
 export default async function PatientDetailPage({ params }) {
   const { id } = await params;
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-  let response;
+  let patientResponse;
+  let diagnosisPayload = null;
+  let engagementPayload = null;
 
   try {
-    response = await fetch(`${apiBaseUrl}/api/patients/${id}`, {
-      cache: "no-store",
-    });
+    const [patientResult, diagnosisResult, engagementResult] = await Promise.all([
+      fetch(`${apiBaseUrl}/api/patients/${id}`, {
+        cache: "no-store",
+      }),
+      fetch(`${apiBaseUrl}/api/patients/${id}/diagnoses`, {
+        cache: "no-store",
+      }),
+      fetch(`${apiBaseUrl}/api/patients/${id}/engag`, {
+        cache: "no-store",
+      }),
+    ]);
+
+    patientResponse = patientResult;
+
+    if (diagnosisResult.ok) {
+      diagnosisPayload = await diagnosisResult.json();
+    }
+
+    if (engagementResult.ok) {
+      engagementPayload = await engagementResult.json();
+    }
   } catch {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-10">
@@ -139,7 +210,7 @@ export default async function PatientDetailPage({ params }) {
     );
   }
 
-  if (!response.ok) {
+  if (!patientResponse.ok) {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-10">
         <div className="mx-auto max-w-3xl rounded-2xl border border-red-200 bg-white p-8 shadow-lg">
@@ -158,8 +229,16 @@ export default async function PatientDetailPage({ params }) {
     );
   }
 
-  const patient = normalizePatient(await response.json());
-  const ui = buildUiModel(patient);
+  const patient = normalizePatient(await patientResponse.json());
+  const diagnosisData = normalizeDiagnosisPayload(diagnosisPayload);
+  const engagementData = normalizeEngagementPayload(engagementPayload);
+  const ui = buildUiModel(patient, diagnosisData, engagementData);
+  const statusBadgeStyles = {
+    red: "border-rose-400 bg-rose-50 text-rose-700",
+    amber: "border-amber-400 bg-amber-50 text-amber-700",
+    green: "border-emerald-400 bg-emerald-50 text-emerald-700",
+    slate: "border-slate-300 bg-slate-100 text-slate-700",
+  };
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#edf7fb_0%,#eef7f4_100%)] px-5 py-8 md:px-8">
@@ -207,8 +286,12 @@ export default async function PatientDetailPage({ params }) {
                 <div className="hidden h-10 w-px bg-slate-200 md:block" />
                 <div className="flex items-center gap-4 text-xl">
                   <span>Status:</span>
-                  <span className="rounded-full border border-amber-400 bg-amber-50 px-5 py-1.5 text-base font-semibold tracking-[0.08em] text-amber-700">
-                    MONITOR
+                  <span
+                    className={`rounded-full border px-5 py-1.5 text-base font-semibold tracking-[0.08em] ${
+                      statusBadgeStyles[ui.diagnosisTone]
+                    }`}
+                  >
+                    {ui.diagnosisStatus}
                   </span>
                 </div>
               </div>
@@ -219,8 +302,9 @@ export default async function PatientDetailPage({ params }) {
                     <h2 className="text-xl font-semibold text-slate-800">Triggered Alerts:</h2>
                     <ul className="mt-4 space-y-3 text-base leading-7 text-slate-700">
                       <li>• Symptom score {ui.symptomDelta}</li>
-                      <li>• Speech rate decreased significantly</li>
-                      <li>• Missed 2 consecutive check-ins</li>
+                      {ui.alerts.map((alert) => (
+                        <li key={alert}>• {alert}</li>
+                      ))}
                     </ul>
                   </div>
 
