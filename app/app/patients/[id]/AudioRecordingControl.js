@@ -2,121 +2,119 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const DEMO_DURATION_SECONDS = 65;
+const DEMO_AUDIO_SRC = "/Sample_1.wav";
 
-export default function AudioRecordingControl() {
+export default function AudioRecordingControl({
+  audioSrc = DEMO_AUDIO_SRC,
+  className = "",
+  compact = false,
+}) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [durationSeconds, setDurationSeconds] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const intervalRef = useRef(null);
-  const startedAtRef = useRef(null);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (audioRef.current) {
+        audioRef.current.pause();
       }
     };
   }, []);
 
-  function playDemoTone() {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) {
+  async function handleToggle() {
+    const audio = audioRef.current;
+    if (!audio) {
       return;
     }
 
-    const context = new AudioContextClass();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-
-    oscillator.type = "sine";
-    oscillator.frequency.value = 660;
-    gain.gain.value = 0.03;
-
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.12);
-
-    oscillator.onended = () => {
-      context.close().catch(() => {});
-    };
-  }
-
-  function stopPlayback() {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setIsPlaying(false);
-  }
-
-  function startPlayback() {
-    playDemoTone();
-    setIsPlaying(true);
-
-    startedAtRef.current = Date.now() - elapsedSeconds * 1000;
-
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    intervalRef.current = setInterval(() => {
-      const nextElapsed = Math.min(
-        DEMO_DURATION_SECONDS,
-        (Date.now() - startedAtRef.current) / 1000
-      );
-
-      setElapsedSeconds(nextElapsed);
-
-      if (nextElapsed >= DEMO_DURATION_SECONDS) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-        setIsPlaying(false);
-      }
-    }, 250);
-  }
-
-  function handleToggle() {
     if (isPlaying) {
-      stopPlayback();
+      audio.pause();
+      setIsPlaying(false);
       return;
     }
 
-    if (elapsedSeconds >= DEMO_DURATION_SECONDS) {
-      setElapsedSeconds(0);
+    try {
+      await audio.play();
+      setIsPlaying(true);
+    } catch {
+      setIsPlaying(false);
     }
-
-    startPlayback();
   }
 
-  const progressPercent = Math.min(100, (elapsedSeconds / DEMO_DURATION_SECONDS) * 100);
+  function handleLoadedMetadata() {
+    const audio = audioRef.current;
+    if (!audio) {
+      return;
+    }
+
+    if (Number.isFinite(audio.duration) && audio.duration > 0) {
+      setDurationSeconds(audio.duration);
+    }
+  }
+
+  function handleTimeUpdate() {
+    const audio = audioRef.current;
+    if (!audio) {
+      return;
+    }
+
+    setElapsedSeconds(audio.currentTime);
+  }
+
+  function handleEnded() {
+    setIsPlaying(false);
+    setElapsedSeconds(0);
+  }
+
+  const progressPercent = durationSeconds
+    ? Math.min(100, (elapsedSeconds / durationSeconds) * 100)
+    : 0;
   const currentWholeSeconds = Math.floor(elapsedSeconds);
-  const timeLabel = `${formatTime(currentWholeSeconds)} / ${formatTime(DEMO_DURATION_SECONDS)}`;
+  const timeLabel = `${formatTime(currentWholeSeconds)} / ${
+    durationSeconds ? formatTime(Math.floor(durationSeconds)) : "--:--"
+  }`;
 
   return (
-    <div className="mt-3 rounded-[1.5rem] bg-cyan-50 p-4">
+    <div
+      className={`${compact ? "rounded-2xl bg-white p-3" : "mt-3 rounded-[1.5rem] bg-cyan-50 p-4"} ${className}`.trim()}
+    >
+      <audio
+        ref={audioRef}
+        src={audioSrc}
+        preload="metadata"
+        onLoadedMetadata={handleLoadedMetadata}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
+      />
       <div className="flex flex-col items-center justify-center gap-3 text-center">
-        <div className="flex w-full max-w-sm items-center justify-center gap-4">
+        <div className={`flex items-center justify-center gap-4 ${compact ? "w-full" : "w-full max-w-sm"}`}>
           <button
             type="button"
             onClick={handleToggle}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white shadow-md transition hover:bg-blue-600"
+            className={`flex shrink-0 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white shadow-md transition hover:bg-blue-600 ${
+              compact ? "h-9 w-9" : "h-11 w-11"
+            }`}
           >
             {isPlaying ? "||" : ">"}
           </button>
-          <div className="w-full max-w-xs">
-            <div className="h-3 overflow-hidden rounded-full bg-slate-200">
-              <div
-                className="h-full rounded-full bg-blue-500 transition-[width] duration-200"
-                style={{ width: `${progressPercent}%` }}
-              />
+          <div className={`flex items-center gap-3 ${compact ? "w-full" : "w-full max-w-xs"}`}>
+            <div className="w-full">
+              <div className={`${compact ? "h-2.5" : "h-3"} overflow-hidden rounded-full bg-slate-200`}>
+                <div
+                  className="h-full rounded-full bg-blue-500 transition-[width] duration-200"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
+            <p className={`shrink-0 text-slate-500 ${compact ? "text-xs" : "text-sm"}`}>{timeLabel}</p>
           </div>
         </div>
-        <div className="w-full max-w-xs">
-          <p className="text-center text-lg text-slate-500">{timeLabel}</p>
-        </div>
+        {compact && (
+          <div className="w-full">
+            <p className="text-center text-xs text-slate-400">Demo playback</p>
+          </div>
+        )}
       </div>
     </div>
   );
