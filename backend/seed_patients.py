@@ -25,7 +25,7 @@ SAMPLE_PATIENTS = [
         "gender": "F",
         "last_visit": "2026-02-25",
         "next_appointment": "2026-03-15",
-        "status": "Active",
+        "status": "High",
         "phone": "555-0101",
     },
     {
@@ -35,7 +35,7 @@ SAMPLE_PATIENTS = [
         "gender": "M",
         "last_visit": "2026-02-27",
         "next_appointment": "2026-03-01",
-        "status": "Follow-up",
+        "status": "Medium",
         "phone": "555-0102",
     },
     {
@@ -45,7 +45,7 @@ SAMPLE_PATIENTS = [
         "gender": "F",
         "last_visit": "2026-02-20",
         "next_appointment": "2026-03-20",
-        "status": "Active",
+        "status": "Low",
         "phone": "555-0103",
     },
     {
@@ -55,7 +55,7 @@ SAMPLE_PATIENTS = [
         "gender": "M",
         "last_visit": "2026-02-28",
         "next_appointment": "-",
-        "status": "Pending",
+        "status": "Undetermined",
         "phone": "555-0104",
     },
     {
@@ -65,7 +65,7 @@ SAMPLE_PATIENTS = [
         "gender": "F",
         "last_visit": "2026-02-26",
         "next_appointment": "2026-03-05",
-        "status": "Follow-up",
+        "status": "High",
         "phone": "555-0105",
     },
     {
@@ -75,7 +75,7 @@ SAMPLE_PATIENTS = [
         "gender": "M",
         "last_visit": "2026-02-15",
         "next_appointment": "2026-04-15",
-        "status": "Active",
+        "status": "Undetermined",
         "phone": "555-0106",
     },
 ]
