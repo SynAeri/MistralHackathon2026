@@ -105,8 +105,9 @@ export default function Home() {
               <th className="px-6 py-3">Age</th>
               <th className="px-6 py-3">Gender</th>
               <th className="px-6 py-3">Last Visit</th>
+              <th className="px-6 py-3">Last Engagement</th>
               <th className="px-6 py-3">Next Appointment</th>
-              <th className="px-6 py-3">Status</th>
+              <th className="px-6 py-3">Risk</th>
               <th className="px-6 py-3">Phone</th>
               <th className="px-6 py-3 text-center">Details</th>
             </tr>
@@ -140,6 +141,8 @@ export default function Home() {
                 <td className="px-6 py-3 text-gray-600">{patient.age}</td>
                 <td className="px-6 py-3 text-gray-600">{patient.gender}</td>
                 <td className="px-6 py-3 text-gray-600">{patient.lastVisit}</td>
+                                <td className="px-6 py-3 text-gray-600">{patient.lastVisit}</td>
+
                 <td className="px-6 py-3 text-gray-600">{patient.nextAppointment}</td>
                 <td className="px-6 py-3">
                   <span

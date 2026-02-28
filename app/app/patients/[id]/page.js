@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AudioRecordingControl from "./AudioRecordingControl";
+import SendConfirmationButton from "./SendConfirmationButton";
 
 function normalizePatient(patient) {
   return {
@@ -21,7 +22,7 @@ function buildUiModel(patient) {
     "Dr. William Carter",
     "Dr. Maya Singh",
     "Dr. Elena Brooks",
-    "Dr. Daniel Kim",
+    "Dr. Daniel Kim", 
   ];
   const transcriptMap = [
     "I barely made it through the call today. Everything feels heavy, work keeps piling up, and I have been skipping medication some days because I forget or because it just feels pointless.",
@@ -48,7 +49,7 @@ function buildUiModel(patient) {
     symptomDelta: "+22% vs baseline",
     biomarkers: [
       {
-        title: "Response Latency",
+        title: "Speech Duration",
         value: "2.3",
         unit: "s",
         delta: "+0.8s vs baseline",
@@ -62,7 +63,7 @@ function buildUiModel(patient) {
         points: [1.2, 1.25, 1.5, 1.4, 1.65, 1.85, 2.05, 2.3],
       },
       {
-        title: "Pause Burden",
+        title: "Speech Rate",
         value: "34",
         unit: "%",
         delta: "+12% vs baseline",
@@ -76,7 +77,7 @@ function buildUiModel(patient) {
         points: [20, 22, 23, 25, 27, 28, 30, 34],
       },
       {
-        title: "Speech Rate",
+        title: "Intensity",
         value: "118",
         unit: "wpm",
         delta: "-24 vs baseline",
@@ -91,7 +92,7 @@ function buildUiModel(patient) {
         points: [142, 140, 138, 135, 132, 128, 122, 118],
       },
       {
-        title: "Pitch Variability",
+        title: "Variability",
         value: "68",
         unit: "Hz",
         delta: "Stable",
@@ -193,7 +194,7 @@ export default async function PatientDetailPage({ params }) {
           </div>
         </section>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_minmax(21rem,0.75fr)]">
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_0.75fr]">
           <div className="space-y-6">
             <section className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
               <div className="flex flex-wrap items-center gap-5 border-b border-slate-200 pb-6 text-slate-700">
@@ -238,12 +239,7 @@ export default async function PatientDetailPage({ params }) {
                     <InfoRow label="Requested Appointment Date" value={ui.requestedDate} />
                     <InfoRow label="Requested Time" value={ui.requestedTime} />
                   </div>
-                  <button
-                    type="button"
-                    className="mt-14 inline-flex w-full items-center justify-center rounded-2xl bg-blue-500 px-5 py-4 text-lg font-semibold text-white shadow-[0_10px_25px_rgba(59,130,246,0.28)] transition hover:bg-blue-600"
-                  >
-                    Send Confirmation
-                  </button>
+                  <SendConfirmationButton />
                 </div>
               </div>
             </section>
@@ -269,7 +265,7 @@ export default async function PatientDetailPage({ params }) {
             </section>
           </div>
 
-          <aside className="h-fit rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
+          <aside className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-7 shadow-[0_14px_40px_rgba(44,62,80,0.08)]">
             <h2 className="text-3xl font-bold tracking-[-0.03em] text-slate-800">Latest Check-In</h2>
             <div className="mt-8 space-y-6 text-slate-700">
               <InfoRow label="Date & Time" value={ui.latestCheckInDate} />
@@ -373,21 +369,24 @@ function BiomarkerCard({ item }) {
     <div className={`rounded-[1.7rem] border p-6 ${style.card}`}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xl font-semibold text-slate-800">{item.title}</p>
+          <p className="text-lg font-semibold text-slate-800">{item.title}</p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
-            <p className="text-5xl font-bold tracking-[-0.04em] text-slate-800">
-              {item.value}
-            </p>
-            <p className="pb-2 text-xl text-slate-500">{item.unit}</p>
-            <p className={`pb-2 text-lg font-medium ${style.value}`}>{item.delta}</p>
+            <p className="text-4xl font-bold tracking-[-0.04em] text-slate-800">{item.value}</p>
+            <p className="pb-2 text-lg text-slate-500">{item.unit}</p>
+            <p className={`pb-2 text-base font-medium ${style.value}`}>{item.delta}</p>
           </div>
         </div>
-        <span className={`rounded-full px-4 py-2 text-base font-semibold ${style.badge}`}>
+        <span className={`rounded-full px-4 py-2 text-sm font-semibold ${style.badge}`}>
           {item.badge}
         </span>
       </div>
       <div className="mt-6">
-        <MiniChart item={item} lineColor={style.line} fillColor={style.fill} baselineColor={style.baseline} />
+        <MiniChart
+          item={item}
+          lineColor={style.line}
+          fillColor={style.fill}
+          baselineColor={style.baseline}
+        />
       </div>
     </div>
   );
@@ -447,7 +446,14 @@ function MiniChart({ item, lineColor, fillColor, baselineColor }) {
           </text>
         </g>
       ))}
-      <line x1={left} y1={top + chartHeight} x2={left + chartWidth} y2={top + chartHeight} stroke="#94a3b8" strokeWidth="1" />
+      <line
+        x1={left}
+        y1={top + chartHeight}
+        x2={left + chartWidth}
+        y2={top + chartHeight}
+        stroke="#94a3b8"
+        strokeWidth="1"
+      />
       <line x1={left} y1={top} x2={left} y2={top + chartHeight} stroke="#94a3b8" strokeWidth="1" />
       <line
         x1={left}
@@ -459,7 +465,14 @@ function MiniChart({ item, lineColor, fillColor, baselineColor }) {
         strokeWidth="2"
       />
       <path d={areaPath} fill={fillColor} />
-      <path d={linePath} fill="none" stroke={lineColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={linePath}
+        fill="none"
+        stroke={lineColor}
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       {item.yTicks.map((tick, index) => {
         const ratio = item.yTicks.length === 1 ? 0 : index / (item.yTicks.length - 1);
         const y = top + chartHeight - ratio * chartHeight;
