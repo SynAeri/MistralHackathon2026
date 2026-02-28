@@ -17,3 +17,4 @@ chat_response = client.chat.complete(
         },
     ]
 )
+print(chat_response)
