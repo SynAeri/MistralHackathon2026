@@ -490,7 +490,20 @@ def get_patient_engagement(patient_id: int, db: Session = Depends(get_db)):
         "call_percentage": round(call_percentage, 2)
     }
 
+
 ###
+# Voice DataGET endpoint
+###
+
+#@app.get("/api/patients/{patient_id}/VLatest") # get and return the latest audio correlating to the user
+
+#@app.get("/api/patients/{patient_id}/VAll") # get amd return all available audio points correlating to the user
+
+###
+# Call endpoint
+###
+# @app.get("/api/call")
+
 # Voice Biometrics endpoint
 ###
 @app.get("/api/patients/{patient_id}/vb")
