@@ -778,14 +778,14 @@ async def trigger_vapi_call(call_data: CallRequest, db: Session = Depends(get_db
         raise HTTPException(status_code=404, detail="Patient not found")
 
     # 3. Vapi Payload configured for Mistral + ElevenLabs
+# 3. Vapi Payload configured for Mistral + ElevenLabs
     payload = {
         "assistant": {
-            "maxDurationSeconds": 60,
             "name": f"Clinical Assistant for {patient.name}",
             "firstMessage": f"Hello {patient.name}, I'm calling from the clinic to see how you're feeling today.",
             "model": {
-                "provider": "mistral", # Explicitly using Mistral
-                "model": "mistral-small", # Optimized for low latency
+                "provider": "mistral", 
+                "model": "mistral-small", 
                 "messages": [
                     {
                         "role": "system",
@@ -794,18 +794,19 @@ async def trigger_vapi_call(call_data: CallRequest, db: Session = Depends(get_db
                 ]
             },
             "voice": {
-                "provider": "11labs", # Explicitly using ElevenLabs
-                "voiceId": "elliot", # Your specific ElevenLabs Voice ID
+                "provider": "11labs", 
+                "voiceId": "elliot", 
                 "stability": 0.5,
                 "similarityBoost": 0.75
             }
         },
-        "phoneNumber": patient.phone,
+        # THE FIX IS HERE:
+        "phoneNumberId": "YOUR_VAPI_PHONE_NUMBER_ID_HERE", # Note: It is 'phoneNumberId', not 'phoneNumber'
         "customer": {
             "number": patient.phone,
             "name": patient.name
         },
-        # This tells Vapi to send the .wav back to your Railway Volume
+        "maxDurationSeconds": 60, # Moved to the root of the payload where Vapi expects it
         "serverUrl": "https://mistralhackathon2026-production.up.railway.app/api/webhook/vapi"
     }
 
