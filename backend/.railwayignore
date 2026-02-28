@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database (will be created on Railway)
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment (set in Railway dashboard)
+.env
+.env.local
+
+# Outputs (generated at runtime)
+voice-analysis-kin/outputs/
+voice-analysis-system/outputs/
+
+# Nix (not needed on Railway)
+shell.nix
+.nix-*
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!requirements.txt
+
+# Large model files (will download on startup)
+*.ckpt
+*.pth
+*.pt
+*.bin

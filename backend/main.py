@@ -18,9 +18,18 @@ model = "mistral-medium-latest"
 
 client = Mistral(api_key=api_key)
 
-# Database setup - For debug, no need for cloud
-SQLALCHEMY_DATABASE_URL = "sqlite:///./users.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+# Database setup - PostgreSQL for Railway, SQLite for local dev
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./users.db")
+
+# Railway provides DATABASE_URL starting with postgres://, but SQLAlchemy needs postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Create engine with appropriate settings
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -226,9 +235,10 @@ def get_current_user(session_id: Optional[str] = Cookie(None), db: Session = Dep
 app = FastAPI()
 
 origins = [
-    "http://localhost:3000",  # Next.js frontend (default)
+    "http://localhost:3000",  # Next.js frontend (local dev)
     "http://localhost:8080",  # Alternative frontend port
     "http://localhost:8000",  # Backend docs
+    "https://mistral-hackathon2026.vercel.app",  # Production frontend
 ]
 
 app.add_middleware(
