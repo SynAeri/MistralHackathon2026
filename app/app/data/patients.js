@@ -2,7 +2,7 @@ export const patients = [
   {
     id: 1,
     mrn: "MRN-1001",
-    name: "Sarah Johnson",
+    name: "Sarah ",
     age: 45,
     gender: "F",
     lastVisit: "2026-02-25",
