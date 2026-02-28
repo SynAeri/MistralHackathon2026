@@ -50,7 +50,71 @@ function normalizeEngagementPayload(payload) {
   };
 }
 
-function buildUiModel(patient, diagnosisData, engagementData) {
+function normalizeAudioItem(item, fallbackIndex = 0) {
+  if (!item || typeof item !== "object") {
+    const number = fallbackIndex + 1;
+    return {
+      id: `rec-${number}`,
+      title: `Recording ${String(number).padStart(2, "0")}`,
+      date: `2026-02-${String(Math.max(1, 28 - fallbackIndex)).padStart(2, "0")}`,
+      duration: "00:00",
+      audioSrc: "/Sample_1.wav",
+    };
+  }
+
+  const number = fallbackIndex + 1;
+
+  return {
+    id: String(item.id ?? `rec-${number}`),
+    title:
+      item.title ??
+      item.name ??
+      item.label ??
+      `Recording ${String(number).padStart(2, "0")}`,
+    date:
+      item.date ??
+      item.recorded_at ??
+      item.created_at ??
+      item.timestamp ??
+      `2026-02-${String(Math.max(1, 28 - fallbackIndex)).padStart(2, "0")}`,
+    duration: item.duration ?? item.length ?? item.time ?? "--:--",
+    audioSrc:
+      item.audioSrc ??
+      item.audio_url ??
+      item.audioUrl ??
+      item.file_path ??
+      item.path ??
+      "/Sample_1.wav",
+  };
+}
+
+function normalizeLatestAudioPayload(payload) {
+  const candidate =
+    payload?.latest ??
+    payload?.audio ??
+    payload?.recording ??
+    (Array.isArray(payload) ? payload[0] : payload);
+
+  return normalizeAudioItem(candidate, 0);
+}
+
+function normalizeAllAudioPayload(payload) {
+  const list =
+    (Array.isArray(payload) && payload) ||
+    payload?.audios ||
+    payload?.audio ||
+    payload?.recordings ||
+    payload?.items ||
+    [];
+
+  if (!Array.isArray(list) || list.length === 0) {
+    return Array.from({ length: 9 }, (_, itemIndex) => normalizeAudioItem(null, itemIndex));
+  }
+
+  return list.map((item, itemIndex) => normalizeAudioItem(item, itemIndex));
+}
+
+function buildUiModel(patient, diagnosisData, engagementData, latestAudio, recordings) {
   const assignedClinicians = [
     "Dr. William Carter",
     "Dr. Maya Singh",
@@ -82,20 +146,6 @@ function buildUiModel(patient, diagnosisData, engagementData) {
     lower: "Within baseline",
     undetermined: "No baseline yet",
   };
-  const recordings = Array.from({ length: 9 }, (_, itemIndex) => {
-    const number = itemIndex + 1;
-    const minutes = number < 4 ? "01" : number < 7 ? "00" : "02";
-    const seconds = String((number * 7) % 60).padStart(2, "0");
-
-    return {
-      id: `rec-${number}`,
-      title: `Recording ${String(number).padStart(2, "0")}`,
-      date: `2026-02-${String(28 - itemIndex).padStart(2, "0")}`,
-      duration: `${minutes}:${seconds}`,
-      audioSrc: "/Sample_1.wav",
-    };
-  });
-
   return {
     diagnosis: diagnosisData.diagnosis,
     diagnosisStatus: monitorStatusMap[diagnosisData.status] ?? "REVIEW",
@@ -105,7 +155,7 @@ function buildUiModel(patient, diagnosisData, engagementData) {
     requestedDate: patient.nextAppointment === "-" ? "March 5, 2026" : patient.nextAppointment,
     requestedTime: "2:30 PM",
     latestCheckInDate: "Apr 22, 2024, 4:05PM",
-    // duration: "65 seconds",
+    latestAudio,
     transcript: transcriptMap[index],
     recordings,
     completion: Math.round(engagementData.callPercentage),
@@ -182,9 +232,12 @@ export default async function PatientDetailPage({ params }) {
   let patientResponse;
   let diagnosisPayload = null;
   let engagementPayload = null;
+  let latestAudioPayload = null;
+  let allAudioPayload = null;
 
   try {
-    const [patientResult, diagnosisResult, engagementResult] = await Promise.all([
+    const [patientResult, diagnosisResult, engagementResult, latestAudioResult, allAudioResult] =
+      await Promise.all([
       fetch(`${apiBaseUrl}/api/patients/${id}`, {
         cache: "no-store",
       }),
@@ -192,6 +245,12 @@ export default async function PatientDetailPage({ params }) {
         cache: "no-store",
       }),
       fetch(`${apiBaseUrl}/api/patients/${id}/engag`, {
+        cache: "no-store",
+      }),
+      fetch(`${apiBaseUrl}/api/patients/${id}/VLatest`, {
+        cache: "no-store",
+      }),
+      fetch(`${apiBaseUrl}/api/patients/${id}/VAll`, {
         cache: "no-store",
       }),
     ]);
@@ -204,6 +263,14 @@ export default async function PatientDetailPage({ params }) {
 
     if (engagementResult.ok) {
       engagementPayload = await engagementResult.json();
+    }
+
+    if (latestAudioResult.ok) {
+      latestAudioPayload = await latestAudioResult.json();
+    }
+
+    if (allAudioResult.ok) {
+      allAudioPayload = await allAudioResult.json();
     }
   } catch {
     return (
@@ -247,7 +314,9 @@ export default async function PatientDetailPage({ params }) {
   const patient = normalizePatient(await patientResponse.json());
   const diagnosisData = normalizeDiagnosisPayload(diagnosisPayload);
   const engagementData = normalizeEngagementPayload(engagementPayload);
-  const ui = buildUiModel(patient, diagnosisData, engagementData);
+  const latestAudio = normalizeLatestAudioPayload(latestAudioPayload);
+  const recordings = normalizeAllAudioPayload(allAudioPayload);
+  const ui = buildUiModel(patient, diagnosisData, engagementData, latestAudio, recordings);
   const statusBadgeStyles = {
     red: "border-rose-400 bg-rose-50 text-rose-700",
     amber: "border-amber-400 bg-amber-50 text-amber-700",
@@ -368,11 +437,10 @@ export default async function PatientDetailPage({ params }) {
             <h2 className="text-2xl font-bold tracking-[-0.03em] text-slate-800">Latest Check-In</h2>
             <div className="mt-8 space-y-6 text-slate-700">
               <InfoRow label="Date & Time" value={ui.latestCheckInDate} />
-              {/* <InfoRow label="Duration" value={ui.duration} /> */}
 
               <div>
                 <p className="text-xl font-medium text-slate-500">Audio Recording</p>
-                <AudioRecordingControl />
+                <AudioRecordingControl audioSrc={ui.latestAudio.audioSrc} />
               </div>
 
               <div>

@@ -166,10 +166,10 @@ export default function Home() {
                   </span>
                 </td>
                 <td className="px-6 py-3 text-gray-600">{patient.phone}</td>
-                <td className="px-6 py-3 text-center">
+                <td className="px-6 py-3">
                   <Link
                     href={`/patients/${patient.id}`}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-lg font-bold text-blue-600 transition hover:border-blue-300 hover:bg-blue-100"
+                    className="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-base font-bold leading-none text-blue-600 transition hover:border-blue-300 hover:bg-blue-100"
                     aria-label={`View details for ${patient.name}`}
                   >
                     &rarr;
