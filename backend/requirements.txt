@@ -27,9 +27,9 @@ python-dotenv==1.0.1
 # VOICE ANALYSIS (for voice-analysis-system)
 # ========================================
 librosa==0.10.2.post1
-matplotlib==3.9.3
+# matplotlib==3.9.3
 numpy==1.26.4
-scipy==1.14.1
+# scipy==1.14.1
 soundfile==0.12.1
 audioread==3.0.1
 
