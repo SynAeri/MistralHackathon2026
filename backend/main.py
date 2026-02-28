@@ -4,7 +4,7 @@ from typing import Optional
 import secrets
 from mistralai import Mistral
 from dotenv import load_dotenv
-from fastapi import FastAPI, Depends, HTTPException, status, Response, Cookie
+from fastapi import FastAPI, Depends, HTTPException, risk, Response, Cookie
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
@@ -55,7 +55,7 @@ class Patient(Base):
     gender = Column(String, nullable=False)  # "M" or "F"
     last_visit = Column(String, nullable=True)  # Date string (e.g., "2026-02-25")
     next_appointment = Column(String, nullable=True)  # Date string or "-"
-    status = Column(String, nullable=False)  # "Active", "Follow-up", "Pending"
+    risk = Column(String, nullable=False)  # "Active", "Follow-up", "Pending"
     phone = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -99,7 +99,7 @@ class PatientCreate(BaseModel):
     gender: str  # "M" or "F"
     last_visit: Optional[str] = None
     next_appointment: Optional[str] = None
-    status: str = "Active"  # "Active", "Follow-up", "Pending"
+    risk: str = "Undetermined"  # "High", "low", "medium", "undetermined"
     phone: str
 
 class PatientUpdate(BaseModel):
@@ -108,7 +108,7 @@ class PatientUpdate(BaseModel):
     gender: Optional[str] = None
     last_visit: Optional[str] = None
     next_appointment: Optional[str] = None
-    status: Optional[str] = None
+    risk: Optional[str] = None
     phone: Optional[str] = None
 
 class PatientResponse(BaseModel):
@@ -119,7 +119,7 @@ class PatientResponse(BaseModel):
     gender: str
     last_visit: Optional[str]
     next_appointment: Optional[str]
-    status: str
+    risk: str
     phone: str
 
     class Config:
@@ -158,7 +158,7 @@ def create_session(user_id: int) -> str:
 def get_current_user(session_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)) -> User:
     if not session_id or session_id not in sessions:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            risk_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated"
         )
 
@@ -166,14 +166,14 @@ def get_current_user(session_id: Optional[str] = Cookie(None), db: Session = Dep
     if datetime.utcnow() > session_data["expires_at"]:
         del sessions[session_id]
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            risk_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session expired"
         )
 
     user = db.query(User).filter(User.id == session_data["user_id"]).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            risk_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found"
         )
 
@@ -199,39 +199,6 @@ app.add_middleware(
 def read_data():
     return {"message": "Data from FastAPI"}
 
-@app.post("/api/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    # Check if user already exists
-    existing_user = db.query(User).filter(
-        (User.email == user_data.email) | (User.username == user_data.username)
-    ).first()
-
-    if existing_user:
-        if existing_user.email == user_data.email:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already taken"
-            )
-
-    # new user creation
-    hashed_password = get_password_hash(user_data.password)
-    new_user = User(
-        email=user_data.email,
-        username=user_data.username,
-        hashed_password=hashed_password
-    )
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return new_user
-
 @app.post("/api/auth/login")
 def login(user_data: UserLogin, response: Response, db: Session = Depends(get_db)):
     # Find user
@@ -239,7 +206,7 @@ def login(user_data: UserLogin, response: Response, db: Session = Depends(get_db
 
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            risk_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password"
         )
 
@@ -279,6 +246,7 @@ def get_me(current_user: User = Depends(get_current_user)):
 # ========================================
 # PATIENT ENDPOINTS
 # ========================================
+# 
 
 @app.get("/api/patients", response_model=list[PatientResponse])
 def get_patients(
@@ -312,7 +280,7 @@ def get_patient(patient_id: int, db: Session = Depends(get_db)):
 
     if not patient:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            risk_code=status.HTTP_404_NOT_FOUND,
             detail=f"Patient with ID {patient_id} not found"
         )
 
@@ -323,7 +291,7 @@ def get_patient(patient_id: int, db: Session = Depends(get_db)):
 # Create Patients
 ###
 
-@app.post("/api/patients", response_model=PatientResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/patients", response_model=PatientResponse, risk_code=status.HTTP_201_CREATED)
 def create_patient(patient_data: PatientCreate, db: Session = Depends(get_db)):
     """Create a new patient record"""
 
@@ -331,7 +299,7 @@ def create_patient(patient_data: PatientCreate, db: Session = Depends(get_db)):
     existing_patient = db.query(Patient).filter(Patient.mrn == patient_data.mrn).first()
     if existing_patient:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            risk_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Patient with MRN {patient_data.mrn} already exists"
         )
 
@@ -343,7 +311,7 @@ def create_patient(patient_data: PatientCreate, db: Session = Depends(get_db)):
         gender=patient_data.gender,
         last_visit=patient_data.last_visit,
         next_appointment=patient_data.next_appointment,
-        status=patient_data.status,
+        risk=patient_data.status,
         phone=patient_data.phone
     )
 
@@ -364,7 +332,7 @@ def update_patient(
     patient = db.query(Patient).filter(Patient.id == patient_id).first()
     if not patient:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            risk_code=status.HTTP_404_NOT_FOUND,
             detail=f"Patient with ID {patient_id} not found"
         )
 
@@ -382,14 +350,14 @@ def update_patient(
 ###
 # Delete patient
 ### 
-@app.delete("/api/patients/{patient_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/api/patients/{patient_id}", risk_code=status.HTTP_204_NO_CONTENT)
 def delete_patient(patient_id: int, db: Session = Depends(get_db)):
     """Delete a patient record"""
 
     patient = db.query(Patient).filter(Patient.id == patient_id).first()
     if not patient:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            risk_code=status.HTTP_404_NOT_FOUND,
             detail=f"Patient with ID {patient_id} not found"
         )
 
