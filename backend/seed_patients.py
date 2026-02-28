@@ -3,21 +3,26 @@
 Seed the database with sample patients for testing
 Run: python seed_patients.py
 """
+import random
 from main import SessionLocal, Patient, Diagnosis, Engagement, VoiceBiometrics, Base, engine
 from datetime import datetime
 
 def seed_patients():
     """Add sample patients to the database."""
 
-    # Create all tables
-    print("Creating database tables...")
-    Base.metadata.create_all(bind=engine)
-
     db = SessionLocal()
 
     try:
         # Check if patients already exist
-        existing_count = db.query(Patient).count()
+        try:
+            existing_count = db.query(Patient).count()
+        except Exception as schema_e:
+            # If this fails, the schema is likely out of sync.
+            # WE MUST ROLLBACK THE FAILED TRANSACTION HERE!
+            db.rollback() 
+            print(f"⚠️  Database schema mismatch detected: {schema_e}")
+            existing_count = 0
+
         if existing_count > 0:
             print(f"⚠️  Database already has {existing_count} patients")
             response = input("Clear and reseed? (y/N): ")
@@ -32,88 +37,90 @@ def seed_patients():
             db.query(Patient).delete()
             db.commit()
             print("✓ Cleared existing patients")
+            
+        # ... the rest of your seeding loop ...
 
-        # Sample patients with realistic data
+        # Sample patients with realistic data (MRNs removed, generated dynamically below)
         patients_data = [
             {
-                "mrn": "MRN001",
                 "name": "Sarah Johnson",
                 "age": 34,
                 "gender": "F",
-                "phone": "+1234567890",
+                "phone": "+61412345678",
                 "last_visit": "2026-02-25",
                 "next_appointment": "2026-03-10",
                 "status": "Active",
+                "risk": "High",
                 "diagnoses": [
-                    {"diagnosis": "Generalized Anxiety Disorder", "status": "medium"},
-                    {"diagnosis": "Depression (Mild)", "status": "lower"}
+                    {"diagnosis": "Depression", "risk": "medium"},
+                    {"diagnosis": "Depression (Mild)", "risk": "lower"}
                 ]
             },
             {
-                "mrn": "MRN002",
-                "name": "Michael Chen",
+                "name": "Elijah Tan",
                 "age": 45,
                 "gender": "M",
-                "phone": "+1234567891",
+                "phone": "+61407123456",
                 "last_visit": "2026-02-20",
                 "next_appointment": "2026-03-05",
-                "status": "Follow-up",
+                "status": "Active",
+                "risk": "Medium",
                 "diagnoses": [
-                    {"diagnosis": "PTSD", "status": "high"},
-                    {"diagnosis": "Insomnia", "status": "medium"}
+                    {"diagnosis": "Depression", "risk": "high"},
+                    {"diagnosis": "Insomnia", "risk": "medium"}
                 ]
             },
             {
-                "mrn": "MRN003",
                 "name": "Emily Rodriguez",
                 "age": 28,
                 "gender": "F",
-                "phone": "+1234567892",
+                "phone": "+61411987654",
                 "last_visit": "2026-02-28",
                 "next_appointment": "-",
-                "status": "Active",
+                "status": "Follow-up",
+                "risk": "Low",
                 "diagnoses": [
-                    {"diagnosis": "Social Anxiety", "status": "medium"}
+                    {"diagnosis": "Depression", "risk": "medium"}
                 ]
             },
             {
-                "mrn": "MRN004",
                 "name": "David Park",
                 "age": 52,
                 "gender": "M",
-                "phone": "+1234567893",
+                "phone": "+61408765432",
                 "last_visit": "2026-01-15",
                 "next_appointment": "2026-03-20",
                 "status": "Pending",
+                "risk": "Undetermined",
                 "diagnoses": [
-                    {"diagnosis": "Bipolar Disorder", "status": "high"},
-                    {"diagnosis": "Anxiety", "status": "medium"}
+                    {"diagnosis": "Depression", "risk": "high"},
+                    {"diagnosis": "Depression", "risk": "medium"}
                 ]
             },
             {
-                "mrn": "MRN005",
                 "name": "Jennifer Martinez",
                 "age": 41,
                 "gender": "F",
-                "phone": "+1234567894",
+                "phone": "+61419876543",
                 "last_visit": "2026-02-26",
                 "next_appointment": "2026-03-12",
                 "status": "Active",
+                "risk": "Low",
                 "diagnoses": [
-                    {"diagnosis": "Depression (Moderate)", "status": "high"}
+                    {"diagnosis": "Depression", "risk": "high"}
                 ]
             },
             {
-                "mrn": "MRN006",
                 "name": "Robert Taylor",
                 "age": 37,
                 "gender": "M",
-                "phone": "+1234567895",
+                "phone": "+61402654321",
                 "last_visit": "2026-02-15",
                 "next_appointment": "-",
-                "status": "Active",
+                "status": "Follow-up",
+                "risk": "Low",
                 "diagnoses": [
-                    {"diagnosis": "Panic Disorder", "status": "medium"}
+                    {"diagnosis": "Depression", "risk": "medium"}
                 ]
             }
         ]
@@ -123,6 +130,10 @@ def seed_patients():
         for patient_data in patients_data:
             # Extract diagnoses
             diagnoses_data = patient_data.pop("diagnoses", [])
+            
+            # Generate a realistic random MRN (e.g., MRN-1234567)
+            random_mrn = f"MRN-{random.randint(1000000, 9999999)}"
+            patient_data["mrn"] = random_mrn
 
             # Create patient
             patient = Patient(**patient_data)
@@ -134,15 +145,20 @@ def seed_patients():
                 diagnosis = Diagnosis(
                     patient_id=patient.id,
                     diagnosis=diag_data["diagnosis"],
-                    status=diag_data["status"]
+                    risk=diag_data["risk"]
                 )
                 db.add(diagnosis)
+
+            # Generate random engagement metrics
+            # Total calls between 1 and 20 to ensure unpicked can always be strictly less
+            random_total_calls = random.randint(1, 20)
+            random_unpicked_calls = random.randint(0, random_total_calls - 1)
 
             # Add engagement metrics
             engagement = Engagement(
                 patient_id=patient.id,
-                total_calls=0,
-                calls_unpicked=0
+                total_calls=random_total_calls,
+                calls_unpicked=random_unpicked_calls
             )
             db.add(engagement)
 
@@ -155,7 +171,7 @@ def seed_patients():
             )
             db.add(voice_biometrics)
 
-            print(f"  ✓ {patient.name} ({patient.phone})")
+            print(f"  ✓ {patient.name} ({patient.mrn})")
 
         db.commit()
 
