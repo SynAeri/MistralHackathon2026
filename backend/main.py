@@ -765,12 +765,19 @@ class CallRequest(BaseModel):
 
 @app.post("/api/call")
 async def trigger_vapi_call(call_data: CallRequest, db: Session = Depends(get_db)):
-    # 1. Look up patient by phone (MRN context)
+    # 1. Check if VAPI_API_KEY is configured
+    if not VAPI_API_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="VAPI_API_KEY not configured on server"
+        )
+
+    # 2. Look up patient by phone (MRN context)
     patient = db.query(Patient).filter(Patient.phone == call_data.phone).first()
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
 
-    # 2. Vapi Payload configured for Mistral + ElevenLabs
+    # 3. Vapi Payload configured for Mistral + ElevenLabs
     payload = {
         "assistant": {
             "maxDurationSeconds": 60,
@@ -806,7 +813,38 @@ async def trigger_vapi_call(call_data: CallRequest, db: Session = Depends(get_db
         "Authorization": f"Bearer {VAPI_API_KEY}",
         "Content-Type": "application/json"
     }
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(VAPI_URL, json=payload, headers=headers)
-        return response.json()
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            print(f"[VAPI] Initiating call to {patient.phone} ({patient.name})")
+            response = await client.post(VAPI_URL, json=payload, headers=headers)
+
+            # Check if request was successful
+            if response.status_code != 200 and response.status_code != 201:
+                error_detail = response.text
+                print(f"[VAPI] Error {response.status_code}: {error_detail}")
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Vapi API error: {error_detail}"
+                )
+
+            result = response.json()
+            print(f"[VAPI] Call initiated successfully: {result}")
+            return {
+                "success": True,
+                "message": f"Call initiated to {patient.name}",
+                "vapi_response": result
+            }
+
+    except httpx.TimeoutException:
+        print("[VAPI] Request timeout")
+        raise HTTPException(
+            status_code=504,
+            detail="Vapi API request timed out"
+        )
+    except httpx.RequestError as e:
+        print(f"[VAPI] Request error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to connect to Vapi API: {str(e)}"
+        )
