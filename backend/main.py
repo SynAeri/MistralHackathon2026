@@ -758,8 +758,6 @@ def get_patient_voice_biometrics(patient_id: int, db: Session = Depends(get_db))
     }
 
 
-# Vapi Configuration
-
 class CallRequest(BaseModel):
     phone: str
 
