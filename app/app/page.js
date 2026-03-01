@@ -1,8 +1,14 @@
 // app/page.js or any other component in your Next.js app
 "use client";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+const PATIENT_CACHE_TTL_MS = 60 * 1000;
+let patientCache = {
+  data: null,
+  timestamp: 0,
+};
 
 function normalizePatient(patient) {
   const fallbackRiskByStatus = {
@@ -41,19 +47,49 @@ function getRiskBadgeClasses(risk) {
   return "border border-violet-200 bg-violet-100 text-violet-700";
 }
 
+function getStatusBadgeClasses(status) {
+  if (status === "Review") {
+    return "border border-slate-200 bg-slate-100 text-slate-700";
+  }
+
+  return "text-slate-700";
+}
+
 function HomeContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [addedMrn, setAddedMrn] = useState("");
+  const [sortConfig, setSortConfig] = useState({
+    key: "mrn",
+    direction: "asc",
+  });
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const addedMrn = searchParams.get("added");
 
   useEffect(() => {
     let isCancelled = false;
+    const currentAddedMrn =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("added")
+        : null;
+
+    if (currentAddedMrn) {
+      setAddedMrn(currentAddedMrn);
+    }
 
     async function loadPatients() {
+      const isCacheFresh =
+        patientCache.data &&
+        Date.now() - patientCache.timestamp < PATIENT_CACHE_TTL_MS;
+
+      if (!currentAddedMrn && isCacheFresh) {
+        setPatients(patientCache.data);
+        setIsLoading(false);
+        setError("");
+        return;
+      }
+
       try {
         setIsLoading(true);
         setError("");
@@ -66,9 +102,14 @@ function HomeContent() {
         }
 
         const data = await response.json();
+        const normalizedPatients = data.map(normalizePatient);
 
         if (!isCancelled) {
-          setPatients(data.map(normalizePatient));
+          patientCache = {
+            data: normalizedPatients,
+            timestamp: Date.now(),
+          };
+          setPatients(normalizedPatients);
         }
       } catch (loadError) {
         if (!isCancelled) {
@@ -94,20 +135,66 @@ function HomeContent() {
     }
 
     const timeoutId = window.setTimeout(() => {
-      router.replace("/");
+      window.history.replaceState({}, "", "/");
+      setAddedMrn("");
     }, 1800);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [addedMrn, router]);
+  }, [addedMrn]);
 
   // Filter patients based on search term
-  const filteredPatients = patients.filter((patient) =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.mrn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.phone.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPatients = patients
+    .filter((patient) =>
+      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.mrn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.phone.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((left, right) => {
+      const leftValue = left[sortConfig.key];
+      const rightValue = right[sortConfig.key];
+
+      if (typeof leftValue === "number" && typeof rightValue === "number") {
+        return sortConfig.direction === "asc" ? leftValue - rightValue : rightValue - leftValue;
+      }
+
+      const normalizedLeft = String(leftValue ?? "").toLowerCase();
+      const normalizedRight = String(rightValue ?? "").toLowerCase();
+      const comparison = normalizedLeft.localeCompare(normalizedRight, undefined, {
+        numeric: true,
+      });
+
+      return sortConfig.direction === "asc" ? comparison : -comparison;
+    });
+
+  function handleSort(sortKey) {
+    setSortConfig((current) => ({
+      key: sortKey,
+      direction:
+        current.key === sortKey && current.direction === "asc"
+          ? "desc"
+          : "asc",
+    }));
+  }
+
+  function renderSortableHeader(label, sortKey, align = "text-left") {
+    const isActive = sortConfig.key === sortKey;
+    const arrow = isActive ? (sortConfig.direction === "asc" ? "↑" : "↓") : "↕";
+
+    return (
+      <th className={`px-6 py-3 ${align}`}>
+        <button
+          type="button"
+          onClick={() => handleSort(sortKey)}
+          className="inline-flex items-center gap-2 font-semibold text-white transition hover:text-white"
+        >
+          <span>{label}</span>
+          <span className="text-xs">{arrow}</span>
+        </button>
+      </th>
+    );
+  }
 
   return (
     <div className="h-screen w-full bg-white">
@@ -158,10 +245,11 @@ function HomeContent() {
               <th className="px-6 py-3">Patient Name</th>
               <th className="px-6 py-3">Age</th>
               <th className="px-6 py-3">Gender</th>
-              <th className="px-6 py-3">Last Visit</th>
-              <th className="px-6 py-3">Last Engagement</th>
-              <th className="px-6 py-3">Next Appointment</th>
-              <th className="px-6 py-3">Risk</th>
+              {renderSortableHeader("Last Visit", "lastVisit")}
+              {renderSortableHeader("Last Engagement", "lastVisit")}
+              {renderSortableHeader("Next Appointment", "nextAppointment")}
+              {renderSortableHeader("Status", "status")}
+              {renderSortableHeader("Risk", "risk")}
               <th className="px-6 py-3">Phone</th>
               <th className="px-6 py-3 text-center">Details</th>
             </tr>
@@ -169,21 +257,21 @@ function HomeContent() {
           <tbody>
             {isLoading && (
               <tr>
-                <td className="px-6 py-8 text-center text-gray-500" colSpan={10}>
+                <td className="px-6 py-8 text-center text-gray-500" colSpan={11}>
                   Loading patients...
                 </td>
               </tr>
             )}
             {!isLoading && error && (
               <tr>
-                <td className="px-6 py-8 text-center text-red-500" colSpan={10}>
+                <td className="px-6 py-8 text-center text-red-500" colSpan={11}>
                   {error}
                 </td>
               </tr>
             )}
             {!isLoading && !error && filteredPatients.length === 0 && (
               <tr>
-                <td className="px-6 py-8 text-center text-gray-500" colSpan={10}>
+                <td className="px-6 py-8 text-center text-gray-500" colSpan={11}>
                   No patients found.
                 </td>
               </tr>
@@ -210,6 +298,15 @@ function HomeContent() {
                 <td className="px-6 py-3 text-gray-600">{patient.nextAppointment}</td>
                 <td className="px-6 py-3">
                   <span
+                    className={`inline-block min-w-24 px-3 py-1 text-center text-sm font-semibold ${getStatusBadgeClasses(
+                      patient.status
+                    )}`}
+                  >
+                    {patient.status}
+                  </span>
+                </td>
+                <td className="px-6 py-3">
+                  <span
                     className={`inline-block min-w-28 rounded-full px-3 py-1 text-center text-sm font-semibold ${getRiskBadgeClasses(
                       patient.risk
                     )}`}
@@ -222,7 +319,7 @@ function HomeContent() {
                   <Link
                     href={`/patients/${patient.id}`}
                     onClick={(event) => event.stopPropagation()}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-lg font-bold text-blue-600 transition hover:border-blue-300 hover:bg-blue-100"
+                    className="inline-flex items-center justify-center text-base font-semibold text-blue-600 transition hover:text-blue-700"
                     aria-label={`View details for ${patient.name}`}
                   >
                     &rarr;
@@ -239,13 +336,5 @@ function HomeContent() {
 }
 
 export default function Home() {
-  return (
-    <Suspense fallback={
-      <div className="h-screen w-full bg-white flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    }>
-      <HomeContent />
-    </Suspense>
-  );
+  return <HomeContent />;
 }
