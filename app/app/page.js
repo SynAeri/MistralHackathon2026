@@ -1,8 +1,14 @@
 // app/page.js or any other component in your Next.js app
 "use client";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+const PATIENT_CACHE_TTL_MS = 60 * 1000;
+let patientCache = {
+  data: null,
+  timestamp: 0,
+};
 
 function normalizePatient(patient) {
   const fallbackRiskByStatus = {
@@ -54,18 +60,36 @@ function HomeContent() {
   const [patients, setPatients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [addedMrn, setAddedMrn] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: "mrn",
     direction: "asc",
   });
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const addedMrn = searchParams.get("added");
 
   useEffect(() => {
     let isCancelled = false;
+    const currentAddedMrn =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("added")
+        : null;
+
+    if (currentAddedMrn) {
+      setAddedMrn(currentAddedMrn);
+    }
 
     async function loadPatients() {
+      const isCacheFresh =
+        patientCache.data &&
+        Date.now() - patientCache.timestamp < PATIENT_CACHE_TTL_MS;
+
+      if (!currentAddedMrn && isCacheFresh) {
+        setPatients(patientCache.data);
+        setIsLoading(false);
+        setError("");
+        return;
+      }
+
       try {
         setIsLoading(true);
         setError("");
@@ -78,9 +102,14 @@ function HomeContent() {
         }
 
         const data = await response.json();
+        const normalizedPatients = data.map(normalizePatient);
 
         if (!isCancelled) {
-          setPatients(data.map(normalizePatient));
+          patientCache = {
+            data: normalizedPatients,
+            timestamp: Date.now(),
+          };
+          setPatients(normalizedPatients);
         }
       } catch (loadError) {
         if (!isCancelled) {
@@ -106,13 +135,14 @@ function HomeContent() {
     }
 
     const timeoutId = window.setTimeout(() => {
-      router.replace("/");
+      window.history.replaceState({}, "", "/");
+      setAddedMrn("");
     }, 1800);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [addedMrn, router]);
+  }, [addedMrn]);
 
   // Filter patients based on search term
   const filteredPatients = patients
@@ -306,13 +336,5 @@ function HomeContent() {
 }
 
 export default function Home() {
-  return (
-    <Suspense fallback={
-      <div className="h-screen w-full bg-white flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    }>
-      <HomeContent />
-    </Suspense>
-  );
+  return <HomeContent />;
 }

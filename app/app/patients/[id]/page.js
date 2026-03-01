@@ -1127,7 +1127,7 @@ function MiniChart({ item, lineColor, fillColor, baselineColor }) {
         const ratio = item.yTicks.length === 1 ? 0 : index / (item.yTicks.length - 1);
         const y = top + chartHeight - ratio * chartHeight;
         return (
-          <text key={tick} x={left - 10} y={y + 4} textAnchor="end" fontSize="11" fill="#64748b">
+          <text key={`${tick}-${index}`} x={left - 10} y={y + 4} textAnchor="end" fontSize="11" fill="#64748b">
             {tick}
           </text>
         );
