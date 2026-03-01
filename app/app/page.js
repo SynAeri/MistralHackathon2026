@@ -2,7 +2,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
 function normalizePatient(patient) {
   const fallbackRiskByStatus = {
@@ -41,7 +41,7 @@ function getRiskBadgeClasses(risk) {
   return "border border-violet-200 bg-violet-100 text-violet-700";
 }
 
-export default function Home() {
+function HomeContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -235,5 +235,17 @@ export default function Home() {
       </div>
     </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen w-full bg-white flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }
