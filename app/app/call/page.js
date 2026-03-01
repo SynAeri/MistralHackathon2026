@@ -33,7 +33,6 @@ export default function CallPage() {
       if (!response.ok) {
         throw new Error("Call request failed.");
       }
-      print(trimmedPhone);
 
       setFeedback(`Call request sent for ${trimmedPhone}.`);
     } catch {
