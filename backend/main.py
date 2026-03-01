@@ -780,10 +780,6 @@ async def trigger_vapi_call(call_data: CallRequest, db: Session = Depends(get_db
         "assistant": {
             "name": f"Clinical Assistant for {patient.name}",
             "firstMessage": f"Hello {patient.name}, I'm calling from the clinic to see how you're feeling today.",
-            
-            # ⬇️ THE FIX IS HERE: serverUrl is now INSIDE the assistant block ⬇️
-            "serverUrl": "https://mistralhackathon2026-production.up.railway.app/api/webhook/vapi",
-            
             "model": {
                 "provider": "mistral", 
                 "model": "mistral-small", 
