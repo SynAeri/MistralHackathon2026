@@ -1,7 +1,8 @@
 // app/page.js or any other component in your Next.js app
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 
 function normalizePatient(patient) {
   const fallbackRiskByStatus = {
@@ -40,11 +41,14 @@ function getRiskBadgeClasses(risk) {
   return "border border-violet-200 bg-violet-100 text-violet-700";
 }
 
-export default function Home() {
+function HomeContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const addedMrn = searchParams.get("added");
 
   useEffect(() => {
     let isCancelled = false;
@@ -84,6 +88,20 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!addedMrn) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      router.replace("/");
+    }, 1800);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [addedMrn, router]);
+
   // Filter patients based on search term
   const filteredPatients = patients.filter((patient) =>
     patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -117,6 +135,11 @@ export default function Home() {
           </div>
         </div>
       </div>
+      {addedMrn && (
+        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+          Patient added successfully with MRN {addedMrn}.
+        </div>
+      )}
       <div className="mb-6 flex justify-center rounded-md bg-white p-3">
         <input
           type="text"
@@ -166,7 +189,18 @@ export default function Home() {
               </tr>
             )}
             {!isLoading && !error && filteredPatients.map((patient) => (
-              <tr key={patient.id} className="border-b transition hover:bg-slate-50">
+              <tr
+                key={patient.id}
+                className="cursor-pointer border-b transition hover:bg-slate-50"
+                onClick={() => router.push(`/patients/${patient.id}`)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    router.push(`/patients/${patient.id}`);
+                  }
+                }}
+                tabIndex={0}
+              >
                 <td className="px-6 py-3 text-gray-600">{patient.mrn}</td>
                 <td className="px-6 py-3 text-gray-600">{patient.name}</td>
                 <td className="px-6 py-3 text-gray-600">{patient.age}</td>
@@ -187,6 +221,7 @@ export default function Home() {
                 <td className="px-6 py-3 text-center">
                   <Link
                     href={`/patients/${patient.id}`}
+                    onClick={(event) => event.stopPropagation()}
                     className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-lg font-bold text-blue-600 transition hover:border-blue-300 hover:bg-blue-100"
                     aria-label={`View details for ${patient.name}`}
                   >
@@ -200,5 +235,17 @@ export default function Home() {
       </div>
     </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen w-full bg-white flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }
