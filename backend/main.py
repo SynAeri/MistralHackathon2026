@@ -778,18 +778,21 @@ async def trigger_vapi_call(call_data: CallRequest, db: Session = Depends(get_db
         raise HTTPException(status_code=404, detail="Patient not found")
 
     # 3. Vapi Payload configured for Mistral + ElevenLabs
-# 3. Vapi Payload configured for Mistral + ElevenLabs
     payload = {
         "assistant": {
             "name": f"Clinical Assistant for {patient.name}",
             "firstMessage": f"Hello {patient.name}, I'm calling from the clinic to see how you're feeling today.",
+            
+            # ⬇️ THE FIX IS HERE: serverUrl is now INSIDE the assistant block ⬇️
+            "serverUrl": "https://mistralhackathon2026-production.up.railway.app/api/webhook/vapi",
+            
             "model": {
                 "provider": "mistral", 
                 "model": "mistral-small", 
                 "messages": [
                     {
                         "role": "system",
-                        "content": "You are a professional clinical assistant. Ask the patient about their sleep and anxiety."
+                        "content": "You are a professional clinical assistant. Ask the patient about their current mental health."
                     }
                 ]
             },
@@ -799,15 +802,14 @@ async def trigger_vapi_call(call_data: CallRequest, db: Session = Depends(get_db
                 "stability": 0.5,
                 "similarityBoost": 0.75
             }
-        },
-        # THE FIX IS HERE:
-        "phoneNumberId": "b7f527eb-7209-4a75-8712-0f2c2b5376db", # Note: It is 'phoneNumberId', not 'phoneNumber'
+        }, 
+        "phoneNumberId": "b7f527eb-7209-4a75-8712-0f2c2b5376db",
         "customer": {
             "number": patient.phone,
             "name": patient.name
         },
-        "maxDurationSeconds": 60, # Moved to the root of the payload where Vapi expects it
-        "serverUrl": "https://mistralhackathon2026-production.up.railway.app/api/webhook/vapi"
+        "maxDurationSeconds": 60
+        # ⬆️ Notice how serverUrl is no longer down here! ⬆️
     }
 
     headers = {
